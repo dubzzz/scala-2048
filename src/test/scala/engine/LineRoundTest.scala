@@ -66,7 +66,7 @@ class LineRoundTest extends JUnitSuite with Checkers {
   @Test
   def propertyDoNotHoldOnInfiniteStreams() {
     val inputGen = for {
-      l   <- arbitrary[List[Int]] suchThat (_.size > 0)
+      l   <- arbitrary[List[Int]] suchThat (! _.isEmpty)
       num <- Gen.choose(0, 1000)
     } yield (l, num)
 
