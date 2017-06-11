@@ -14,4 +14,10 @@ object LineRound {
                               else t1 #:: merge_tiles(t2 #:: q)
   }
 
+  /** Move one line towards the left */
+  def play_move(num: Int)(s: Stream[Int]): Stream[Int] =
+    merge_tiles(s.filter(_ != 0))
+      .append(Stream.continually(0))
+      .take(num)
+
 }
