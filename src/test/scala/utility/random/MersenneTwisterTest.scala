@@ -80,17 +80,29 @@ class MersenneTwisterTest extends JUnitSuite with Checkers {
   @Test
   def propertySameAsItsImperativeImplementation() {
     val inputGen = for {
-      seed   <- arbitrary[Int]
-      offset <- Gen.choose(0, 2*MersenneTwister.N)
-      num <- Gen.choose(0, 2*MersenneTwister.N)
+      seed <- arbitrary[Int]
+      offset <- Gen.choose(0, 2 * MersenneTwister.N)
+      num <- Gen.choose(0, 2 * MersenneTwister.N)
     } yield (seed, offset, num)
 
-    check(Prop.forAll(inputGen) { data: (Int, Int, Int) => data match {
-      case (seed, offset, num) => {
-        val tw: ImperativeMersenneTwister = new ImperativeMersenneTwister
-        tw.init(seed)
-        MersenneTwister.stream(seed).drop(offset).take(num) == Stream.tabulate(offset + num)(_ => tw.run).drop(offset)
+    check(Prop.forAll(inputGen) { data: (Int, Int, Int) =>
+      data match {
+        case (seed, offset, num) => {
+          val tw: ImperativeMersenneTwister = new ImperativeMersenneTwister
+          tw.init(seed)
+          MersenneTwister.stream(seed).drop(offset).take(num) == Stream.tabulate(offset + num)(_ => tw.run).drop(offset)
+        }
       }
-    }})
+    })
+  }
+
+  @Test
+  def propertyNextDoesNotChangeInternalState() {
+    check { seed: Int =>
+      val tw = MersenneTwister.of(seed)
+      val (v1, _) = tw.next
+      val (v2, _) = tw.next
+      v1 == v2
+    }
   }
 }

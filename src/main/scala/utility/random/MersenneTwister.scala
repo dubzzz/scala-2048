@@ -5,6 +5,11 @@ package utility.random
   *
   * Inspired by https://en.wikipedia.org/wiki/Mersenne_Twister
   */
+class MersenneTwister(val stream: Stream[Int]) extends RandomGenerator[Int] {
+  override def next(): (Int, MersenneTwister) =
+    (stream.head, new MersenneTwister(stream.tail))
+}
+
 object MersenneTwister {
   val N = 624
   val M = 397
@@ -19,6 +24,9 @@ object MersenneTwister {
   val L = 18
   val MASK_LOWER = (1 << R) - 1
   val MASK_UPPER = (1 << R)
+
+  def of(seed: Int): MersenneTwister =
+    new MersenneTwister(MersenneTwister.stream(seed))
 
   def stream(seed: Int): Stream[Int] = {
     def seeded(prev: Int, id: Int): Stream[Int] = {
