@@ -33,8 +33,12 @@ object MersenneTwister {
       nextM ^ xA
     }
     def loop(cur: Stream[Int], next: Stream[Int], nextM: Stream[Int]): Stream[Int] = {
-      val newValue = twisted_next(cur.head, next.head, nextM.head)
-      newValue #:: loop(cur.append(Stream(newValue)).tail, next.append(Stream(newValue)).tail, nextM.append(Stream(newValue)).tail)
+      val nextValues = (cur, next, nextM).zipped.map(twisted_next(_,_,_))
+      nextValues.append(
+        loop(
+          cur.append(nextValues).drop(N-M),
+          next.append(nextValues).drop(N-M),
+          nextValues))
     }
     loop(s, s.tail, s.drop(M)).take(N)
   }
