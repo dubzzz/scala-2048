@@ -22,4 +22,9 @@ object UniformDistribution {
     }
     go(rng)
   }
+
+  def nextBoolean(rng: RNG): (Boolean, RNG) = {
+    val (v, nrng) = nextInt(0, 1)(rng)
+    (v == 1, nrng)
+  }
 }
