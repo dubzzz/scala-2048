@@ -28,6 +28,7 @@ object Console {
         case "down"  => state = state.next(Down).getOrElse(state)
         case "new"   => state = newGame()
         case "quit"  => quitGame = true
+        case _       => printf("[ERROR] Unknown choice: %s\n", choice)
       }
     }
   }
