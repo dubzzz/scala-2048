@@ -21,14 +21,14 @@ object GameState {
   def newGame(rng: RandomGenerator[Int], size: Int = 4): GameState = {
     val s = Grid.toStreams(Grid.empty(size))
     val (ns1, rng1) = appendRand(rng, s)
-    val (ns2, rng2) = appendRand(rng, ns1)
+    val (ns2, rng2) = appendRand(rng1, ns1)
     new GameState(rng2, Grid.of(ns2))
   }
 
   def appendRand(rng: RandomGenerator[Int], s: Stream[Stream[Int]]): (Stream[Stream[Int]], RandomGenerator[Int]) = {
     val numNulls = s.flatten.count(_ == 0)
     val (position, rng1) = UniformDistribution.nextInt(0, numNulls -1)(rng)
-    val (guessValue, rng2) = UniformDistribution.nextInt(0, 9)(rng)
+    val (guessValue, rng2) = UniformDistribution.nextInt(0, 9)(rng1)
     val v = if (guessValue == 0) 4 else 2
 
     def replace_null(ss: Stream[Int], waitNulls: Int): Stream[Int] = {
