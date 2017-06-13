@@ -2,7 +2,7 @@ package engine
 
 import utility.random.{RandomGenerator, UniformDistribution}
 
-class GameState(val rng: RandomGenerator[Int], grid: Array[Array[Int]]) {
+class GameState(val rng: RandomGenerator[Int], val grid: Array[Array[Int]]) {
   def next(direction: Direction): Option[GameState] = {
     val current = Grid.toStreams(grid, direction)
     val afterMove = current.map(LineRound.play_move(grid.length))
