@@ -11,8 +11,8 @@ object Grid {
     dir match {
       case Left  => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream(x * size + y))
       case Right => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream((size -x -1) * size + (size -y -1)))
-      case Up    => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream(y * size + (size -x -1)))
-      case Down  => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream((size -y -1) * size + x))
+      case Up    => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream((size -y -1) * size + x))
+      case Down  => Array.tabulate(size, size)((x: Int, y: Int) => flat_stream(y * size + (size -x -1)))
     }
   }
 
