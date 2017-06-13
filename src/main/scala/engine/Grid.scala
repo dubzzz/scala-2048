@@ -26,17 +26,5 @@ object Grid {
     }
     helper().map(_.take(size)).take(size)
   }
-
-  def main() = {
-    val s = (
-        (1 :: 2 :: 3 :: 4 :: Nil).toStream
-        :: (5 :: 6 :: 7 :: 8 :: Nil).toStream
-        :: (9 :: 10 :: 11 :: 12 :: Nil).toStream
-        :: (13 :: 14 :: 15 :: 16 :: Nil).toStream
-        :: Nil
-        ).toStream
-
-    println(Grid.of(s, Left))
-  }
-
+ 
 }
