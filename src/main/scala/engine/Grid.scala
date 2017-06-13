@@ -5,7 +5,7 @@ object Grid {
   def empty(size: Int): Array[Array[Int]] =
     Array.ofDim[Int](size, size)
 
-  def of(s: Stream[Stream[Int]], dir: Direction): Array[Array[Int]] = {
+  def of(s: Stream[Stream[Int]], dir: Direction = Left): Array[Array[Int]] = {
     val size: Int = s.size
     val flat_stream: Array[Int] = s.flatten.to[Array]
     dir match {
@@ -16,7 +16,7 @@ object Grid {
     }
   }
 
-  def toStreams(grid: Array[Array[Int]], dir: Direction): Stream[Stream[Int]] = {
+  def toStreams(grid: Array[Array[Int]], dir: Direction = Left): Stream[Stream[Int]] = {
     val size: Int = grid.size
     def helper() = dir match {
       case Left  => Stream.from(0).map(y => Stream.from(0).map(x => grid(y)(x)))

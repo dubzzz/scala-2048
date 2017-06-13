@@ -11,9 +11,8 @@ object Console {
     var quitGame = false
     var state = newGame()
     while (! quitGame) {
-      val sgrid = Grid.toStreams(state.grid, Left)
-      printf("Current state (%d points): \n\n", sgrid.flatten.fold(0)(_ + _))
-      sgrid.foreach(line_stream => {
+      printf("Current state (%d points): \n\n", state.score)
+      Grid.toStreams(state.grid).foreach(line_stream => {
         print('\t')
         line_stream.foreach(printf("%d\t", _))
         print('\n')

@@ -3,6 +3,9 @@ package engine
 import utility.random.{RandomGenerator, UniformDistribution}
 
 class GameState(val rng: RandomGenerator[Int], val grid: Array[Array[Int]]) {
+  def score(): Int =
+    Grid.toStreams(grid).flatten.fold(0)(_ + _)
+
   def next(direction: Direction): Option[GameState] = {
     val current = Grid.toStreams(grid, direction)
     val afterMove = current.map(LineRound.play_move(grid.length))
@@ -16,10 +19,10 @@ class GameState(val rng: RandomGenerator[Int], val grid: Array[Array[Int]]) {
 
 object GameState {
   def newGame(rng: RandomGenerator[Int], size: Int = 4): GameState = {
-    val s = Grid.toStreams(Grid.empty(size), Left)
+    val s = Grid.toStreams(Grid.empty(size))
     val (ns1, rng1) = appendRand(rng, s)
     val (ns2, rng2) = appendRand(rng, ns1)
-    new GameState(rng2, Grid.of(ns2, Left))
+    new GameState(rng2, Grid.of(ns2))
   }
 
   def appendRand(rng: RandomGenerator[Int], s: Stream[Stream[Int]]): (Stream[Stream[Int]], RandomGenerator[Int]) = {
