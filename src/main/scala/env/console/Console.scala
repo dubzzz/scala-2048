@@ -1,4 +1,4 @@
-package console
+package env.console
 
 import engine.{Down, GameState, Grid, Left, Right, Up}
 import utility.random.MersenneTwister
