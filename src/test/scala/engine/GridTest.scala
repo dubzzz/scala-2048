@@ -1,6 +1,7 @@
 package engine
 
 import org.junit.Test
+import org.scalacheck.{Arbitrary, Gen, Prop}
 import org.scalatest.junit.JUnitSuite
 import org.scalatest.prop.Checkers
 
@@ -82,5 +83,70 @@ class GridTest extends JUnitSuite with Checkers {
   def toStreamsDown() {
     val expected: List[Int] = 13::9::5::1::14::10::6::2::15::11::7::3::16::12::8::4::Nil
     assertResult(expected)(Grid.toStreams(test_grid, Down).flatten.toList)
+  }
+
+  def listToStreams(gridDefinition: List[Int], chunkSize: Int): Stream[Stream[Int]] = {
+    def go(s: Stream[Int]): Stream[Stream[Int]] = {
+      if (s.isEmpty) Stream.empty[Stream[Int]]
+      else s.take(chunkSize) #:: go(s.drop(chunkSize))
+    }
+    go(gridDefinition.toStream)
+  }
+  def listToGrid(gridDefinition: List[Int], chunkSize: Int): Array[Array[Int]] = {
+    val flatGrid = gridDefinition.to[Array]
+    Array.tabulate(chunkSize, chunkSize)((x: Int, y: Int) => flatGrid(x * chunkSize + y))
+  }
+
+  @Test
+  def propertyOfThenToStreamsIsIdentity() {
+    val genGridDefinition = for {
+      n <- Gen.choose(1, 100)
+      direction <- Gen.oneOf(Left, Right, Up, Down)
+      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
+    } yield (n, direction, gridDefinition)
+
+    check(Prop.forAll(genGridDefinition) { data =>
+      data match {
+        case (n, direction, gridDefinition) =>
+          val s = listToStreams(gridDefinition, n)
+          Grid.toStreams(Grid.of(s, direction), direction) == s
+      }
+    })
+  }
+
+  @Test
+  def propertyToStreamsThenOfIsIdentity() {
+    val genGridDefinition = for {
+      n <- Gen.choose(1, 100)
+      direction <- Gen.oneOf(Left, Right, Up, Down)
+      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
+    } yield (n, direction, gridDefinition)
+
+    check(Prop.forAll(genGridDefinition) { data =>
+      data match {
+        case (n, direction, gridDefinition) =>
+          val g = listToGrid(gridDefinition, n)
+          Grid.of(Grid.toStreams(g, direction), direction) == g
+      }
+    })
+  }
+
+  @Test
+  def propertyOppositeDirectionOppositeStreams() {
+    val genGridDefinition = for {
+      n <- Gen.choose(1, 100)
+      direction <- Gen.oneOf(Left, Right, Up, Down)
+      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
+    } yield (n, direction, gridDefinition)
+
+    def rev() = ()
+
+    check(Prop.forAll(genGridDefinition) { data =>
+      data match {
+        case (n, direction, gridDefinition) =>
+          val g = listToGrid(gridDefinition, n)
+          Grid.toStreams(g, direction).flatten == rev(Grid.toStreams(g, Direction.nextR(Direction.nextR(direction))).flatten)
+      }
+    })
   }
 }
