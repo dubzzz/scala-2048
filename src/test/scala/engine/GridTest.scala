@@ -97,14 +97,16 @@ class GridTest extends JUnitSuite with Checkers {
     Array.tabulate(chunkSize, chunkSize)((x: Int, y: Int) => flatGrid(x * chunkSize + y))
   }
 
+  def rev(s: Stream[Int]): Stream[Int] = s.foldLeft(Stream.empty[Int])((l, v) => v #:: l)
+
+  val genGridDefinition = for {
+    n <- Gen.choose(1, 100)
+    direction <- Gen.oneOf(Left, Right, Up, Down)
+    gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
+  } yield (n, direction, gridDefinition)
+
   @Test
   def propertyOfThenToStreamsIsIdentity() {
-    val genGridDefinition = for {
-      n <- Gen.choose(1, 100)
-      direction <- Gen.oneOf(Left, Right, Up, Down)
-      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
-    } yield (n, direction, gridDefinition)
-
     check(Prop.forAll(genGridDefinition) { data =>
       data match {
         case (n, direction, gridDefinition) =>
@@ -116,36 +118,23 @@ class GridTest extends JUnitSuite with Checkers {
 
   @Test
   def propertyToStreamsThenOfIsIdentity() {
-    val genGridDefinition = for {
-      n <- Gen.choose(1, 100)
-      direction <- Gen.oneOf(Left, Right, Up, Down)
-      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
-    } yield (n, direction, gridDefinition)
-
     check(Prop.forAll(genGridDefinition) { data =>
       data match {
         case (n, direction, gridDefinition) =>
           val g = listToGrid(gridDefinition, n)
-          Grid.of(Grid.toStreams(g, direction), direction) == g
+          val gg = Grid.of(Grid.toStreams(g, direction), direction)
+          !(g.toList, gg.toList).zipped.exists(_.toList != _.toList)
       }
     })
   }
 
   @Test
   def propertyOppositeDirectionOppositeStreams() {
-    val genGridDefinition = for {
-      n <- Gen.choose(1, 100)
-      direction <- Gen.oneOf(Left, Right, Up, Down)
-      gridDefinition <- Gen.listOfN(n * n, Arbitrary.arbitrary[Int])
-    } yield (n, direction, gridDefinition)
-
-    def rev() = ()
-
     check(Prop.forAll(genGridDefinition) { data =>
       data match {
         case (n, direction, gridDefinition) =>
           val g = listToGrid(gridDefinition, n)
-          Grid.toStreams(g, direction).flatten == rev(Grid.toStreams(g, Direction.nextR(Direction.nextR(direction))).flatten)
+          Grid.toStreams(g, direction).flatten == rev(Grid.toStreams(g, Direction.opposite(direction)).flatten)
       }
     })
   }

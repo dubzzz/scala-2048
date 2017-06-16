@@ -19,4 +19,5 @@ object Direction {
     case Right => Down
     case Down  => Left
   }
+  def opposite(dir: Direction): Direction = Direction.nextR(Direction.nextR(dir))
 }
