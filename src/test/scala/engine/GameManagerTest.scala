@@ -10,10 +10,10 @@ class GameManagerTest extends JUnitSuite with Checkers {
   class FakeRandom(v: Int) extends RandomGenerator[Int] {
     override def next(): (Int, RandomGenerator[Int]) = (v+1, new FakeRandom(v+1))
   }
-  class FakeState(rng: RandomGenerator[Int], val desc: List[(Direction, Int)] = Nil) extends GameState(rng) {
+  class FakeState(rng: RandomGenerator[Int], val v: (Direction, Int) = (Left, -1)) extends GameState(rng) {
     override def next(dir: Direction): Option[FakeState] = {
       val (v, nrng) = rng.next()
-      Some(new FakeState(nrng, (dir, v) :: desc))
+      Some(new FakeState(nrng, (dir, v)))
     }
   }
 
@@ -69,7 +69,7 @@ class GameManagerTest extends JUnitSuite with Checkers {
           val gMovesUndo = Stream.continually(0).take(numUndos).foldLeft(gMoves)((g, _) => g.undo().getOrElse(g))
 
           gMovesUndo.prevStates.size + numUndos == gMoves.prevStates.size &&
-              ! (gMovesUndo.prevStates, gMoves.prevStates.drop(numUndos)).zipped.exists((s1, s2) => s1.desc != s2.desc)
+              ! (gMovesUndo.prevStates, gMoves.prevStates.drop(numUndos)).zipped.exists(_.v != _.v)
       }
     })
   }
