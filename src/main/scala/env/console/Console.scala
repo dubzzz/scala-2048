@@ -16,13 +16,14 @@ object Console {
       })
 
       print('\n')
-      val choice = scala.io.StdIn.readLine("Your choice (left/right/up/down/undo/new/quit): ")
+      val choice = scala.io.StdIn.readLine("Your choice (left/right/up/down/undo/redo/new/quit): ")
       choice match {
         case "left"  => game = game.next(Left).getOrElse(game)
         case "right" => game = game.next(Right).getOrElse(game)
         case "up"    => game = game.next(Up).getOrElse(game)
         case "down"  => game = game.next(Down).getOrElse(game)
         case "undo"  => game = game.undo().getOrElse(game)
+        case "redo"  => game = game.redo().getOrElse(game)
         case "new"   => game = game.newGame()
         case "quit"  => quitGame = true
         case _       => printf("[ERROR] Unknown choice: %s\n", choice)
