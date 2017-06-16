@@ -1,15 +1,15 @@
 package env.console
 
-import engine.{Down, GameManager, Grid, Left, Right, Up}
+import engine.{Down, GameManager, Grid, Left, Right, State2048, Up}
 import utility.random.MersenneTwister
 
 object Console {
   def main(args: Array[String]): Unit = {
     var quitGame = false
-    var game = GameManager.of(MersenneTwister.of(System.currentTimeMillis.toInt))
+    var game = GameManager.of(MersenneTwister.of(System.currentTimeMillis.toInt), State2048.newGame(_, 4))
     while (! quitGame) {
-      printf("Current state (%d points): \n\n", game.state().score)
-      Grid.toStreams(game.state().grid).foreach(line_stream => {
+      printf("Current state (%d points): \n\n", game.state.score)
+      Grid.toStreams(game.state.grid).foreach(line_stream => {
         print('\t')
         line_stream.foreach(printf("%d\t", _))
         print('\n')

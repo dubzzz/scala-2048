@@ -2,28 +2,27 @@ package engine
 
 import utility.random.RandomGenerator
 
-class GameManager(val prevStates: List[GameState], val redoStates: List[GameState]) {
-  def state(): GameState = {
-    prevStates.head
+class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State, val prevStates: List[State], val redoStates: List[State]) {
+  def state = prevStates.head
+
+  def next(dir: Direction): Option[GameManager[State]] = {
+    state.next(dir).map(nextS => new GameManager(builder, nextS.asInstanceOf[State] :: prevStates, Nil))
   }
-  def next(dir: Direction): Option[GameManager] = {
-    state().next(dir).map(nextS => new GameManager(nextS :: prevStates, Nil))
-  }
-  def undo(): Option[GameManager] = {
-    if (! prevStates.tail.isEmpty) Some(new GameManager(prevStates.tail, prevStates.head :: redoStates))
+  def undo(): Option[GameManager[State]] = {
+    if (! prevStates.tail.isEmpty) Some(new GameManager(builder, prevStates.tail, prevStates.head :: redoStates))
     else None
   }
-  def redo(): Option[GameManager] = {
-    if (! redoStates.isEmpty) Some(new GameManager(redoStates.head :: prevStates, redoStates.tail))
+  def redo(): Option[GameManager[State]] = {
+    if (! redoStates.isEmpty) Some(new GameManager(builder, redoStates.head :: prevStates, redoStates.tail))
     else None
   }
-  def newGame(): GameManager = {
-    GameManager.of(prevStates.head.rng)
+  def newGame(): GameManager[State] = {
+    GameManager.of(prevStates.head.rng, builder)
   }
 }
 
 object GameManager {
-  def of(rng: RandomGenerator[Int]): GameManager = {
-    new GameManager(GameState.newGame(rng) :: Nil, Nil)
+  def of[State <: GameState](rng: RandomGenerator[Int], builder: RandomGenerator[Int] => State): GameManager[State] = {
+    new GameManager(builder, builder(rng) :: Nil, Nil)
   }
 }
