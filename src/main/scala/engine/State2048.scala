@@ -6,7 +6,7 @@ class State2048(rng: RandomGenerator[Int], val grid: Array[Array[Int]]) extends 
   def score(): Int =
     Grid.toStreams(grid).flatten.fold(0)(_ + _)
 
-  def next(direction: Direction): Option[State2048] = {
+  override def next(direction: Direction): Option[State2048] = {
     val current = Grid.toStreams(grid, direction)
     val afterMove = current.map(LineRound.play_move(grid.length))
     if (current == afterMove) Option.empty[State2048]

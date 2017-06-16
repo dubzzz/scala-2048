@@ -2,7 +2,16 @@ package engine
 
 import utility.random.RandomGenerator
 
+import scala.annotation.tailrec
+
 class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State, val prevStates: List[State], val redoStates: List[State]) {
+  def initialState = {
+    @tailrec def go(l: List[State], s: State): State = l match {
+      case Nil    => s
+      case t :: q => go(q, t)
+    }
+    go(prevStates.tail, prevStates.head)
+  }
   def state = prevStates.head
 
   def next(dir: Direction): Option[GameManager[State]] = {
@@ -17,7 +26,7 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
     else None
   }
   def newGame(): GameManager[State] = {
-    GameManager.of(prevStates.head.rng, builder)
+    GameManager.of(initialState.rng.next()._2, builder)
   }
 }
 
