@@ -4,7 +4,8 @@ package env.web
   * Created by Nicolas DUBIEN on 15/06/2017.
   */
 
-import engine.{GameManager, State2048}
+import engine.{GameManager, Left, State2048, Up, Down, Right}
+import org.scalajs.dom
 import org.scalajs.dom.EventTarget
 import org.singlespaced.d3js.{Selection, d3}
 import utility.random.MersenneTwister
@@ -21,8 +22,9 @@ object ScalaJS extends js.JSApp {
   val fontSize   =  50
 
   type TileArea = Selection[EventTarget]
+  type TileEntity = (Integer, Option[TileArea])
 
-  def appendOneTile(area: Selection[EventTarget], grid: Array[Array[Int]], x: Int, y: Int): TileArea = {
+  def appendTile(area: Selection[EventTarget], grid: Array[Array[Int]], x: Int, y: Int): TileArea = {
     val px = tileMargin * x + tileSize * x + tileSize/2
     val py = tileMargin * y + tileSize * y + tileSize/2
     var g = area.append("g")
@@ -48,13 +50,25 @@ object ScalaJS extends js.JSApp {
 
     g
   }
-  def appendTiles(area: Selection[EventTarget], grid: Array[Array[Int]]): Array[Array[Option[TileArea]]] = {
-    Array.tabulate(grid.size, grid.size)((x,y) =>
-      if (grid(y)(x) == 0) None
-      else Some(appendOneTile(area, grid, x, y)))
+  def appendIfTile(area: Selection[EventTarget], grid: Array[Array[Int]], x: Int, y: Int): Option[TileArea] =
+    if (grid(y)(x) == 0) None
+    else Some(appendTile(area, grid, x, y))
+
+  def destroyTile(tile: TileArea) = tile.remove()
+
+  def emptyTiles(size: Integer) = Array.tabulate[TileEntity](size, size)((y,x) => (0, Option.empty[TileArea]))
+
+  def updateTiles(area: Selection[dom.EventTarget], state: Array[Array[TileEntity]], next: Array[Array[Int]]): Array[Array[TileEntity]] = {
+    Array.tabulate(next.size, next.size)((y,x) =>
+      if (next(y)(x) == state(y)(x)._1) state(y)(x)
+      else {
+        state(y)(x)._2.map(destroyTile)
+        (next(y)(x), appendIfTile(area, next, x, y))
+      })
   }
+
   def drawUnderlyingGrid(area: Selection[EventTarget]): Array[Array[TileArea]] = {
-    Array.tabulate(numTiles,numTiles)((x,y) => {
+    Array.tabulate(numTiles,numTiles)((y,x) => {
       val px = tileMargin * x + tileSize * x + tileSize / 2
       val py = tileMargin * y + tileSize * y + tileSize / 2
       var g = area.append("g")
@@ -78,6 +92,27 @@ object ScalaJS extends js.JSApp {
       State2048.newGame(_, numTiles))
 
     drawUnderlyingGrid(area)
-    appendTiles(area, game.state.grid)
+
+    var tiles = emptyTiles(numTiles)
+    tiles = updateTiles(area, tiles, game.state.grid)
+
+    dom.window.onkeydown = {(e: dom.KeyboardEvent) => e.keyCode match {
+      case 37 /*left*/ => {
+        game = game.next(Left).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+      case 38 /*up*/ => {
+        game = game.next(Up).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+      case 39 /*right*/ => {
+        game = game.next(Right).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+      case 40 /*down*/ => {
+        game = game.next(Down).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+      case _ => ()}}
   }
 }
