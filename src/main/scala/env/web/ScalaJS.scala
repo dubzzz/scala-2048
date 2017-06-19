@@ -13,13 +13,13 @@ import utility.random.MersenneTwister
 import scala.scalajs.js
 
 object ScalaJS extends js.JSApp {
-  val svgHeight  = 450
-
   val numTiles   =   4
   val areaSize   = 400
   val tileMargin =  10
   val tileSize   = (areaSize - (numTiles -1) * tileMargin) / numTiles
   val fontSize   =  50
+
+  val svgSize    = areaSize
 
   type TileArea = Selection[EventTarget]
   type TileEntity = (Int, Option[TileArea])
@@ -98,9 +98,9 @@ object ScalaJS extends js.JSApp {
   }
 
   def main(): Unit = {
-    val svg: Selection[EventTarget] = d3.select("body").append("svg")
-        .attr("width", "100%")
-        .attr("height", s"${svgHeight}px")
+    val svg: Selection[EventTarget] = d3.select("#playground").append("svg")
+        .attr("width", s"${svgSize}px")
+        .attr("height", s"${svgSize}px")
     val area = svg.append("g")
     var game = GameManager.of(
       MersenneTwister.of(System.currentTimeMillis.toInt),
