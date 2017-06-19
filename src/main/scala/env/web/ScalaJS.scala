@@ -111,6 +111,19 @@ object ScalaJS extends js.JSApp {
     var tiles = emptyTiles(numTiles)
     tiles = updateTiles(area, tiles, game.state.grid)
 
+    dom.document.getElementById("new-game").addEventListener("click", (e: EventTarget) => {
+      game = game.newGame()
+      tiles = updateTiles(area, tiles, game.state.grid)
+    })
+    dom.document.getElementById("undo-move").addEventListener("click", (e: EventTarget) => {
+      game = game.undo().getOrElse(game)
+      tiles = updateTiles(area, tiles, game.state.grid)
+    })
+    dom.document.getElementById("redo-move").addEventListener("click", (e: EventTarget) => {
+      game = game.redo().getOrElse(game)
+      tiles = updateTiles(area, tiles, game.state.grid)
+    })
+
     dom.window.onkeydown = {(e: dom.KeyboardEvent) => e.keyCode match {
       case 37 /*left*/ => {
         game = game.next(Left).getOrElse(game)

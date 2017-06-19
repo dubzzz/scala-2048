@@ -3,8 +3,46 @@
 <head>
   <title>2048 in Scala</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="./menu.js"></script>
+	<link href="./style.css" rel="stylesheet">
 </head>
 <body>
+
+<nav class="navbar navbar-fixed-left navbar-minimal animate" role="navigation">
+	<div class="navbar-toggler animate">
+		<span class="menu-icon"></span>
+	</div>
+	<ul class="navbar-menu animate">
+		<li>
+			<a id="new-game" href="#" class="animate">
+				<span class="desc animate"> New game </span>
+				<span class="glyphicon glyphicon-repeat"></span>
+			</a>
+		</li>
+		<li>
+			<a id="undo-move" href="#" class="animate">
+				<span class="desc animate"> Undo last move </span>
+				<span class="glyphicon glyphicon-arrow-left"></span>
+			</a>
+		</li>
+		<li>
+			<a id="redo-move" href="#" class="animate">
+				<span class="desc animate"> Replay move </span>
+				<span class="glyphicon glyphicon-arrow-right"></span>
+			</a>
+		</li>
+		<li>
+			<a id="browse-sources" href="https://github.com/dubzzz/scala-2048" class="animate" target="_blank">
+				<span class="desc animate"> Browse sources </span>
+				<span class="glyphicon glyphicon-link"></span>
+			</a>
+		</li>
+	</ul>
+</nav>
 
 <div id="playground" style="text-align: center; padding-top: 30px"></div>
 
