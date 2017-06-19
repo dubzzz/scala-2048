@@ -22,14 +22,29 @@ object ScalaJS extends js.JSApp {
   val fontSize   =  50
 
   type TileArea = Selection[EventTarget]
-  type TileEntity = (Integer, Option[TileArea])
+  type TileEntity = (Int, Option[TileArea])
+
+  def colorFor(value: Int): String = value match {
+    case    2 => "#f9e08c"
+    case    4 => "#ffcc49"
+    case    8 => "#fcb514"
+    case   16 => "#f99b0c"
+    case   32 => "#ef6b00"
+    case   64 => "#f95602"
+    case  128 => "#f74902"
+    case  256 => "#ef2b2d"
+    case  512 => "#e5053a"
+    case 1024 => "#d30547"
+    case 2048 => "#af003d"
+    case    _ => "#000000"
+  }
 
   def appendTile(area: Selection[EventTarget], grid: Array[Array[Int]], x: Int, y: Int): TileArea = {
     val px = tileMargin * x + tileSize * x + tileSize/2
     val py = tileMargin * y + tileSize * y + tileSize/2
     var g = area.append("g")
     var r = g.append("rect")
-        .style("fill", "#ff0000")
+        .style("fill", colorFor(grid(y)(x)))
         .attr("x", px)
         .attr("y", py)
         .attr("width", 0)
@@ -56,7 +71,7 @@ object ScalaJS extends js.JSApp {
 
   def destroyTile(tile: TileArea) = tile.remove()
 
-  def emptyTiles(size: Integer) = Array.tabulate[TileEntity](size, size)((y,x) => (0, Option.empty[TileArea]))
+  def emptyTiles(size: Int) = Array.tabulate[TileEntity](size, size)((y,x) => (0, Option.empty[TileArea]))
 
   def updateTiles(area: Selection[dom.EventTarget], state: Array[Array[TileEntity]], next: Array[Array[Int]]): Array[Array[TileEntity]] = {
     Array.tabulate(next.size, next.size)((y,x) =>
@@ -73,7 +88,7 @@ object ScalaJS extends js.JSApp {
       val py = tileMargin * y + tileSize * y + tileSize / 2
       var g = area.append("g")
       var r = g.append("rect")
-        .style("fill", "#ffdddd")
+        .style("fill", "#fcf5dc")
         .attr("x", px - tileSize / 2)
         .attr("y", py - tileSize / 2)
         .attr("width", tileSize)
