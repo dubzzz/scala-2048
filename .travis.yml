@@ -5,7 +5,7 @@ scala:
    - 2.12.2
 
 script:
-   - sbt clean test
+   - sbt ++$TRAVIS_SCALA_VERSION clean test
    # avoid unnecessary cache updates, source: http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html
    - find $HOME/.sbt -name "*.lock" | xargs rm
    - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
