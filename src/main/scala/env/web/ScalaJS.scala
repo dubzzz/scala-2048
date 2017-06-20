@@ -4,9 +4,10 @@ package env.web
   * Created by Nicolas DUBIEN on 15/06/2017.
   */
 
-import engine.{GameManager, Left, State2048, Up, Down, Right}
+import engine.{Down, GameManager, Left, Right, State2048, Up}
 import org.scalajs.dom
 import org.scalajs.dom.EventTarget
+import org.scalajs.dom.raw.TouchEvent
 import org.singlespaced.d3js.{Selection, d3}
 import utility.random.MersenneTwister
 
@@ -123,6 +124,25 @@ object ScalaJS extends js.JSApp {
       game = game.redo().getOrElse(game)
       tiles = updateTiles(area, tiles, game.state.grid)
     })
+
+    var startTouch: (Double, Double) = (0.0, 0.0)
+    dom.document.getElementsByTagName("svg")(0).addEventListener("touchstart", (e: TouchEvent) => {
+      startTouch = (e.changedTouches(0).pageX, e.changedTouches(0).pageY)
+    }, false)
+    dom.document.getElementsByTagName("svg")(0).addEventListener("touchend", (e: TouchEvent) => {
+      val endTouch = (e.changedTouches(0).pageX, e.changedTouches(0).pageY)
+      val delta = (endTouch._1 - startTouch._1, endTouch._2 - startTouch._2)
+      if (2 * Math.abs(delta._1) < Math.abs(delta._2)) {
+        if (delta._2 > 0) game = game.next(Down).getOrElse(game)
+        else game = game.next(Up).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+      else if (2 * Math.abs(delta._2) < Math.abs(delta._1)) {
+        if (delta._1 > 0) game = game.next(Right).getOrElse(game)
+        else game = game.next(Left).getOrElse(game)
+        tiles = updateTiles(area, tiles, game.state.grid)
+      }
+    }, false)
 
     dom.window.onkeydown = {(e: dom.KeyboardEvent) => e.keyCode match {
       case 37 /*left*/ => {
