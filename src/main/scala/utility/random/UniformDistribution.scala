@@ -28,12 +28,12 @@ object UniformDistribution {
     (v == 1, nrng)
   }
 
-  def nextOf[A](rng: RNG, first: A, others: A*): (A, RNG) = {
+  def nextOf[A](first: A, others: A*)(rng: RNG): (A, RNG) = {
     val (v, nrng) = nextInt(0, others.size)(rng)
     if (v == 0) (first, nrng) else (others(v-1), nrng)
   }
 
-  def nextFrequency[A](rng: RNG, choices: (Int, A)*): (A, RNG) = {
+  def nextFrequency[A](choices: (Int, A)*)(rng: RNG): (A, RNG) = {
     val s = choices.toStream
     val count = s.map(_._1).fold(0)(_ + _)
     val (v, nrng) = nextInt(0, count -1)(rng)
