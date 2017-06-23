@@ -15,7 +15,7 @@ object UniformDistribution {
     val max_allowed: Long = NUM_VALUES - (NUM_VALUES % diff)
 
     @tailrec def go(r: RNG): (Int, RNG) = {
-      val (v, nrng) = rng.next
+      val (v, nrng) = r.next
       val vv = v.asInstanceOf[Long] - MIN_VALUE
       if (vv < max_allowed) ((vv % diff + from.asInstanceOf[Long]).asInstanceOf[Int], nrng)
       else go(nrng)
