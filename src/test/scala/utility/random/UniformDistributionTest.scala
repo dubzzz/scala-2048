@@ -26,9 +26,10 @@ object IncrementalInput {
   def infinite(offset: Int): IncrementalInput = {
     def go(prev: Int): Stream[Int] = {
       val current = if (prev == Int.MaxValue) Int.MinValue else prev +1
+      if (current == offset) throw new IllegalStateException("Too many states have been evaluating, check for infinite loop")
       current #:: go(current)
     }
-    new IncrementalInput(go(offset))
+    new IncrementalInput(offset #:: go(offset))
   }
 }
 
