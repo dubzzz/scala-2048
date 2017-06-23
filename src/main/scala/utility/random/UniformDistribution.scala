@@ -11,9 +11,9 @@ object UniformDistribution {
   
   type Generator[A] = RNG => (A, RNG)
 
-  def nextInt: Generator[Int] = (rng: RNG) => rng.next
+  def arbitrary: Generator[Int] = (rng: RNG) => rng.next
 
-  def nextInt(from: Int, to: Int): Generator[Int] = {
+  def inRange(from: Int, to: Int): Generator[Int] = {
     val diff: Long = to.asInstanceOf[Long] - from.asInstanceOf[Long] +1
     val max_allowed: Long = NUM_VALUES - (NUM_VALUES % diff)
     
@@ -27,19 +27,19 @@ object UniformDistribution {
     (rng: RNG) => go(rng)
   }
 
-  def nextBoolean: Generator[Boolean] = 
-    (rng: RNG) => nextInt(0, 1)(rng) match {
+  def ofBool: Generator[Boolean] = 
+    (rng: RNG) => inRange(0, 1)(rng) match {
       case (0, nrng) => (false, nrng)
       case (_, nrng) => ( true, nrng)
     }
 
-  def nextOf[A](first: A, others: A*): Generator[A] = 
-    (rng: RNG) => nextInt(0, others.size)(rng) match {
+  def of[A](first: A, others: A*): Generator[A] = 
+    (rng: RNG) => inRange(0, others.size)(rng) match {
       case (0, nrng) => (first, nrng)
       case (n, nrng) => (others(n-1), nrng)
     }
 
-  def nextFrequency[A](choices: (Int, A)*): Option[Generator[A]] = {
+  def frequencyOption[A](choices: (Int, A)*): Option[Generator[A]] = {
     val s = choices.toStream
     val count = s.map(_._1).fold(0)(_ + _)
     
@@ -49,7 +49,8 @@ object UniformDistribution {
 
     if (count == 0 || s.map(_._1).exists(_ < 0)) None
     else Some(
-      (rng: RNG) => nextInt(0, count -1)(rng) match {
+      (rng: RNG) => inRange(0, count -1)(rng) match {
         case (n, nrng) => (get(s, n), nrng) })
   }
+  def frequency[A](choices: (Int, A)*): Generator[A] = frequencyOption(choices: _*).get
 }

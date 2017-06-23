@@ -42,7 +42,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
 
     check(Prop.forAll(inputGen) {inputGen: (Int, Int) => inputGen match {
       case (from, to) => {
-        val (out, _) = UniformDistribution.nextInt(from, to)(IncrementalInput.of())
+        val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.of())
         out >= from && out <= to
       }
     }})
@@ -62,7 +62,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
         var rng = IncrementalInput.of(0, 2*length +1) //twice the length should always be enough (+1 to avoid length = 0)
         while (! found && ! rng.isEmpty()) {
           try {
-            val (out, nrng) = UniformDistribution.nextInt(from, from + length)(rng)
+            val (out, nrng) = UniformDistribution.inRange(from, from + length)(rng)
             rng = nrng.asInstanceOf[IncrementalInput]
             found = (out == target)
           }
@@ -90,7 +90,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
         val numRuns = num * (length +1)
         val buckets: Array[Int] = Array.ofDim[Int](length +1)
         for (i <- 0 to (numRuns -1)) {
-          val (v, ngen) = UniformDistribution.nextInt(from, from + length)(gen)
+          val (v, ngen) = UniformDistribution.inRange(from, from + length)(gen)
           gen = ngen.asInstanceOf[IncrementalInput]
           buckets(v - from) += 1
         }

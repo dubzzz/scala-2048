@@ -27,9 +27,8 @@ object State2048 {
 
   def appendRand(rng: RandomGenerator[Int], s: Stream[Stream[Int]]): (Stream[Stream[Int]], RandomGenerator[Int]) = {
     val numNulls = s.flatten.count(_ == 0)
-    val (position, rng1) = UniformDistribution.nextInt(0, numNulls -1)(rng)
-    val (guessValue, rng2) = UniformDistribution.nextInt(0, 9)(rng1)
-    val v = if (guessValue == 0) 4 else 2
+    val (position, rng1) = UniformDistribution.inRange(0, numNulls -1)(rng)
+    val (v, rng2) = UniformDistribution.frequency((1, 4), (9, 2))(rng1)
 
     def replace_null(ss: Stream[Int], waitNulls: Int): Stream[Int] = {
       if (ss.isEmpty) Stream.empty[Int]
