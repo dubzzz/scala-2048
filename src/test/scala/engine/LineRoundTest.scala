@@ -12,54 +12,54 @@ class LineRoundTest extends JUnitSuite with Checkers {
   @Test
   def noIdenticalTiles() {
     val in: List[Int] = 1::2::4::Nil
-    assertResult(in)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(in)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def identicalTilesCannotBeMerged() {
     val in: List[Int] = 1::2::4::2::Nil
-    assertResult(in)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(in)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def avoidCascadindMergedTiles() {
     val in: List[Int] = 1::1::2::4::Nil
     val ou: List[Int] = 2::2::4::Nil
-    assertResult(ou)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(ou)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def mergeLeftSideFirst() {
     val in: List[Int] = 1::1::1::Nil
     val ou: List[Int] = 2::1::Nil
-    assertResult(ou)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(ou)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def mutltipleMergesOnSameValue() {
     val in: List[Int] = 1::1::1::1::Nil
     val ou: List[Int] = 2::2::Nil
-    assertResult(ou)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(ou)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def doMergeEvenAtTheEnd() {
     val in: List[Int] = 1::2::1::1::Nil
     val ou: List[Int] = 1::2::2::Nil
-    assertResult(ou)(LineRound.merge_tiles(in.toStream).toList)
+    assertResult(ou)(LineRound.ofInt.merge_tiles(in.toStream).toList)
   }
 
   @Test
   def propertySummedValueNotImpacted() {
     check { l: List[Int] =>
-      l.fold(0)(_ + _) == LineRound.merge_tiles(l.toStream).fold(0)(_ + _)
+      l.fold(0)(_ + _) == LineRound.ofInt.merge_tiles(l.toStream).fold(0)(_ + _)
     }
   }
 
   @Test
   def propertyShorterOrSameAsInput() {
     check { l: List[Int] =>
-      l.size >= LineRound.merge_tiles(l.toStream).size
+      l.size >= LineRound.ofInt.merge_tiles(l.toStream).size
     }
   }
 
@@ -71,7 +71,7 @@ class LineRoundTest extends JUnitSuite with Checkers {
     } yield (l, num)
 
     check(Prop.forAll(inputGen) {gens: (List[Int], Int) => gens match {
-      case (l, num) => LineRound.merge_tiles(Stream.continually(l.toStream).flatten).take(num).size == num
+      case (l, num) => LineRound.ofInt.merge_tiles(Stream.continually(l.toStream).flatten).take(num).size == num
     }})
   }
 
@@ -112,7 +112,7 @@ class LineRoundTest extends JUnitSuite with Checkers {
     } yield (l)
 
     check(Prop.forAll(inputGen) {l: List[(Int, Int)] =>
-      LineRound.merge_tiles(inputStreamFor(l)) == outputStreamFor(mergeEquals(l))
+      LineRound.ofInt.merge_tiles(inputStreamFor(l)) == outputStreamFor(mergeEquals(l))
     })
   }
 }

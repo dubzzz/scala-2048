@@ -8,7 +8,7 @@ class State2048(rng: RandomGenerator[Int], val grid: Array[Array[Int]]) extends 
 
   override def next(direction: Direction): Option[State2048] = {
     val current = Grid.toStreams(grid, direction)
-    val afterMove = current.map(LineRound.play_move(grid.length))
+    val afterMove = current.map(LineRound.ofInt.play_move(grid.length))
     if (current == afterMove) Option.empty[State2048]
     else {
       val (afterAppend, nrng) = State2048.appendRand(rng, afterMove)
