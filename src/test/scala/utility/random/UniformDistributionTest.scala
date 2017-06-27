@@ -93,6 +93,10 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
 
   @Test
   def propertyEvenlyDistributed() {
+    // UniformDistribution does even better (implementation specific)
+    // for all range of N values, for M times N drawn of consecutives integers (i,i+1,i+2,...),
+    // it will return exactly M times each of the N values
+
     val MIN_NUM = 1
     val MAX_NUM = 100
     def validNum = validWithin(MIN_NUM, MAX_NUM)(_)
