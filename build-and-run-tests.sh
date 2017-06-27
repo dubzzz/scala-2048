@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Assume the names of directories do not contain '\'
 
 if [[ $# -gt 1 ]]; then
