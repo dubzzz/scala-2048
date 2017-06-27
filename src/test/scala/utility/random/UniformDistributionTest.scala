@@ -38,7 +38,7 @@ object IncrementalInput {
 
 class UniformDistributionTest extends JUnitSuite with Checkers {
   val PROP_HANDLE_UNEXPECTED_INPUT = System.getProperty("HANDLE_UNEXPECTED_INPUT");
-  val HANDLE_UNEXPECTED_INPUT = PROP_HANDLE_UNEXPECTED_INPUT != null && PROP_HANDLE_UNEXPECTED_INPUT.equalsIgnoreCase("true")
+  val HANDLE_UNEXPECTED_INPUT = PROP_HANDLE_UNEXPECTED_INPUT == null || PROP_HANDLE_UNEXPECTED_INPUT.equalsIgnoreCase("true")
   
   val MIN_LENGTH = 0
   val MAX_LENGTH = 1000
@@ -57,7 +57,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       to <- arbitrary[Int] suchThat (validTo(from)(_))
     } yield (from, to)
 
-    check(Prop.forAll(inputGen) {in: (Int, Int) => in match {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int) => in match {
       case (from, to) if validInput(in) => {
         val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.of())
         out >= from && out <= to
@@ -79,7 +79,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       target <- Gen.choose(from, from + length)
     } yield (from, length, target)
 
-    check(Prop.forAll(inputGen) {in: (Int, Int, Int) => in match {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int, Int) => in match {
       case (from, length, target) if validInput(in) => {
         var found = false
         var rng = IncrementalInput.of(0, 2*length +1) //twice the length should always be enough (+1 to avoid length = 0)
@@ -115,7 +115,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       num <- Gen.choose(MIN_NUM, MAX_NUM)
     } yield (offset, from, length, num)
 
-    check(Prop.forAll(inputGen) {in: (Int, Int, Int, Int) => in match {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int, Int, Int) => in match {
       case (offset, from, length, num) if validInput(in) => {
         var gen = IncrementalInput.infinite(offset)
         val numRuns = num * (length +1)
@@ -152,7 +152,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       entries <- Gen.listOf(entryGen) suchThat (validEntries _)
     } yield (offset, entries)
 
-    check(Prop.forAll(inputGen) {in: (Int, List[(Int,Int)]) => in match {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, List[(Int,Int)]) => in match {
       case (offset, entries) if validInput(in) => {
           var gen = IncrementalInput.infinite(offset)
           val flattenEq: List[Int] = entries.flatMap(e => Stream.continually(valueOf(e)).take(arityOf(e)).toList)
