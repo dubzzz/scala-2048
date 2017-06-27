@@ -19,7 +19,7 @@ else
 fi
 
 SRC_MANAGED_PATH=$(sbt ${SBT_SCALA_VERSION} "export source-managed" --error)
-BUILD_PATH=$(echo "${SRC_MANAGED_PATH}" | rev | cut -d\\ -f2- | cut -d/ -f2- | rev)
+BUILD_PATH=$(echo "${SRC_MANAGED_PATH}" | sed 's/[\\/][^\/]*$//')
 CP_PATHS=$(sbt ${SBT_SCALA_VERSION} "export test:dependency-classpath" --error)
 
 echo "Scala version      : ${SCALA_VERSION}"
