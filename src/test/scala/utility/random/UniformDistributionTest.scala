@@ -27,50 +27,68 @@ object IncrementalInput {
   }
 }
 
-class UniformDistributionTest extends JUnitSuite with Checkers {
+object FromLengthGen {
   val MIN_LENGTH = 0
   val MAX_LENGTH = 1000
-  def validWithin(min: Int, max: Int)(value: Int) = value >= min && value <= max
-  def validLength(from: Int)(length: Int) =
-      validWithin(MIN_LENGTH, MAX_LENGTH)(length) &&
-      from <= length + from
 
+  def validLength(from: Int)(length: Int) = MIN_LENGTH <= length && length <= MAX_LENGTH && from <= length + from
+
+  val unsafeGen = for {
+    offset <- arbitrary[Int]
+    from <- arbitrary[Int]
+    length <- Gen.choose(MIN_LENGTH, MAX_LENGTH) suchThat (validLength(from)(_))
+  } yield (offset, from, length)
+
+  val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
+
+  def check(in: (Int, Int, Int)) = validLength(in._2)(in._3)
+}
+
+object FromLengthTargetGen {
+  def validTarget(from: Int, to: Int)(target: Int) = from <= target && target <= to
+
+  val unsafeGen = for {
+    (offset, from, length) <- FromLengthGen.unsafeGen
+    target <- Gen.choose(from, from + length)
+  } yield (offset, from, length, target)
+
+  val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
+
+  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validTarget(in._2, in._2 + in._3)(in._4)
+}
+
+object FromLengthTimesGen {
+  val MIN_NUM = 1
+  val MAX_NUM = 100
+
+  def validNum(num: Int) = MIN_NUM <= num && num <= MAX_NUM
+
+  val unsafeGen = for {
+    (offset, from, length) <- FromLengthGen.unsafeGen
+    num <- Gen.choose(MIN_NUM, MAX_NUM)
+  } yield (offset, from, length, num)
+
+  val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
+
+  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validNum(in._4)
+}
+
+class UniformDistributionTest extends JUnitSuite with Checkers {
   @Test
   def propertyAlwaysInTheRange() {
-    def validTo(from: Int)(to: Int) = from <= to
-    def validInput(in: (Int, Int, Int)) = validTo(in._2)(in._3)
-
-    val inputGen = for {
-      offset <- arbitrary[Int]
-      from <- arbitrary[Int]
-      to <- arbitrary[Int] suchThat (validTo(from)(_))
-    } yield (offset, from, to)
-
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (offset, from, to) if validInput((offset, from, to)) => {
-        val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.infinite(offset))
-        out >= from && out <= to
-      }
+    check(Prop.forAll(FromLengthGen.gen) {
+      case (offset, from, length) if FromLengthGen.check((offset, from, length)) => {
+        val (out, _) = UniformDistribution.inRange(from, from + length)(IncrementalInput.infinite(offset))
+        out >= from && out <= from + length
+      }// for a range of size > 2^31 the generation can iterate over 2^32 - size of the range (length has been limited)
       case _ => true
     })
   }
 
   @Test
   def propertyCanGenerateWhateverInTheRange() {
-    def validTarget(from: Int, length: Int) = validWithin(from, from + length)(_)
-    def validInput(in: (Int, Int, Int, Int)) =
-        validLength(in._2)(in._3) &&
-        validTarget(in._2, in._3)(in._4)
-
-    val inputGen = for {
-      offset <- arbitrary[Int]
-      from <- arbitrary[Int]
-      length <- Gen.choose(0, 1000) suchThat (validLength(from)(_))
-      target <- Gen.choose(from, from + length)
-    } yield (offset, from, length, target)
-
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (offset, from, length, target) if validInput((offset, from, length, target)) => {
+    check(Prop.forAll(FromLengthTargetGen.gen) {
+      case (offset, from, length, target) if FromLengthTargetGen.check((offset, from, length, target)) => {
         var found = false
         var rng = new IncrementalInput(IncrementalInput.infinite(offset).stream.take(2*length +1)) //twice the length should always be enough (+1 to avoid length = 0)
         while (! found) {
@@ -90,22 +108,8 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
     // for all range of N values, for M times N drawn of consecutives integers (i,i+1,i+2,...),
     // it will return exactly M times each of the N values
 
-    val MIN_NUM = 1
-    val MAX_NUM = 100
-    def validNum = validWithin(MIN_NUM, MAX_NUM)(_)
-    def validInput(in: (Int, Int, Int, Int)) =
-        validLength(in._2)(in._3) &&
-        validNum(in._4)
-
-    val inputGen = for {
-      offset <- arbitrary[Int]
-      from <- arbitrary[Int]
-      length <- Gen.choose(MIN_LENGTH, MAX_LENGTH) suchThat (validLength(from)(_))
-      num <- Gen.choose(MIN_NUM, MAX_NUM)
-    } yield (offset, from, length, num)
-
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (offset, from, length, num) if validInput((offset, from, length, num)) => {
+    check(Prop.forAll(FromLengthTimesGen.gen) {
+      case (offset, from, length, num) if FromLengthTimesGen.check((offset, from, length, num)) => {
         var gen = IncrementalInput.infinite(offset)
         val numRuns = num * (length +1)
         val buckets: Array[Int] = Array.ofDim[Int](length +1)
@@ -126,7 +130,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
     
     val MIN_ARITY = 0
     val MAX_ARITY = 10
-    def validEntry(e: (Int,Int)) = validWithin(MIN_ARITY, MAX_ARITY)(arityOf(e))
+    def validEntry(e: (Int,Int)) = MIN_ARITY <= arityOf(e) && arityOf(e) <= MAX_ARITY
     def validEntries(es: List[(Int,Int)]) = es.foldLeft(0)(_ + arityOf(_)) > 0 && ! es.exists(! validEntry(_))
     def validInput(in: (Int, List[(Int,Int)])) = validEntries(in._2)
     
