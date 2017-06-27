@@ -17,15 +17,6 @@ class IncrementalInput(val stream: Stream[Int]) extends RandomGenerator[Int] {
 }
 
 object IncrementalInput {
-  def of(from: Int, to: Int): IncrementalInput = {
-    def go(cur: Long, tolong: Long): Stream[Int] =
-      if (cur <= tolong) cur.asInstanceOf[Int] #:: go(cur + 1L, tolong)
-      else Stream.empty[Int]
-    new IncrementalInput(go(from.asInstanceOf[Long], to.asInstanceOf[Long]))
-  }
-  def of(): IncrementalInput =
-    IncrementalInput.of(Int.MinValue, Int.MaxValue)
-
   def infinite(offset: Int): IncrementalInput = {
     def go(prev: Int): Stream[Int] = {
       val current = if (prev == Int.MaxValue) Int.MinValue else prev +1
@@ -47,16 +38,17 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
   @Test
   def propertyAlwaysInTheRange() {
     def validTo(from: Int)(to: Int) = from <= to
-    def validInput(in: (Int, Int)) = validTo(in._1)(in._2)
+    def validInput(in: (Int, Int, Int)) = validTo(in._2)(in._3)
 
     val inputGen = for {
+      offset <- arbitrary[Int]
       from <- arbitrary[Int]
       to <- arbitrary[Int] suchThat (validTo(from)(_))
-    } yield (from, to)
+    } yield (offset, from, to)
 
     check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (from, to) if validInput((from, to)) => {
-        val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.of())
+      case (offset, from, to) if validInput((offset, from, to)) => {
+        val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.infinite(offset))
         out >= from && out <= to
       }
       case _ => true
@@ -66,20 +58,21 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
   @Test
   def propertyCanGenerateWhateverInTheRange() {
     def validTarget(from: Int, length: Int) = validWithin(from, from + length)(_)
-    def validInput(in: (Int, Int, Int)) =
-        validLength(in._1)(in._2) &&
-        validTarget(in._1, in._2)(in._3)
+    def validInput(in: (Int, Int, Int, Int)) =
+        validLength(in._2)(in._3) &&
+        validTarget(in._2, in._3)(in._4)
 
     val inputGen = for {
+      offset <- arbitrary[Int]
       from <- arbitrary[Int]
       length <- Gen.choose(0, 1000) suchThat (validLength(from)(_))
       target <- Gen.choose(from, from + length)
-    } yield (from, length, target)
+    } yield (offset, from, length, target)
 
     check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (from, length, target) if validInput((from, length, target)) => {
+      case (offset, from, length, target) if validInput((offset, from, length, target)) => {
         var found = false
-        var rng = IncrementalInput.of(0, 2*length +1) //twice the length should always be enough (+1 to avoid length = 0)
+        var rng = new IncrementalInput(IncrementalInput.infinite(offset).stream.take(2*length +1)) //twice the length should always be enough (+1 to avoid length = 0)
         while (! found) {
           val (out, nrng) = UniformDistribution.inRange(from, from + length)(rng)
           rng = nrng.asInstanceOf[IncrementalInput]
