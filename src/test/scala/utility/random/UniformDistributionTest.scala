@@ -80,15 +80,10 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       case (from, length, target) if validInput((from, length, target)) => {
         var found = false
         var rng = IncrementalInput.of(0, 2*length +1) //twice the length should always be enough (+1 to avoid length = 0)
-        while (! found && ! rng.isEmpty) {
-          try {
-            val (out, nrng) = UniformDistribution.inRange(from, from + length)(rng)
-            rng = nrng.asInstanceOf[IncrementalInput]
-            found = (out == target)
-          }
-          catch {
-            case _: Throwable => ()
-          }
+        while (! found) {
+          val (out, nrng) = UniformDistribution.inRange(from, from + length)(rng)
+          rng = nrng.asInstanceOf[IncrementalInput]
+          found = (out == target)
         }
         found
       }
