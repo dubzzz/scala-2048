@@ -37,9 +37,6 @@ object IncrementalInput {
 }
 
 class UniformDistributionTest extends JUnitSuite with Checkers {
-  val PROP_HANDLE_UNEXPECTED_INPUT = System.getProperty("HANDLE_UNEXPECTED_INPUT");
-  val HANDLE_UNEXPECTED_INPUT = PROP_HANDLE_UNEXPECTED_INPUT == null || PROP_HANDLE_UNEXPECTED_INPUT.equalsIgnoreCase("true")
-  
   val MIN_LENGTH = 0
   val MAX_LENGTH = 1000
   def validWithin(min: Int, max: Int)(value: Int) = value >= min && value <= max
@@ -57,13 +54,13 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       to <- arbitrary[Int] suchThat (validTo(from)(_))
     } yield (from, to)
 
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int) => in match {
-      case (from, to) if validInput(in) => {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {
+      case (from, to) if validInput((from, to)) => {
         val (out, _) = UniformDistribution.inRange(from, to)(IncrementalInput.of())
         out >= from && out <= to
       }
-      case _ if (HANDLE_UNEXPECTED_INPUT) => true
-    }})
+      case _ => true
+    })
   }
 
   @Test
@@ -79,8 +76,8 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       target <- Gen.choose(from, from + length)
     } yield (from, length, target)
 
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int, Int) => in match {
-      case (from, length, target) if validInput(in) => {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {
+      case (from, length, target) if validInput((from, length, target)) => {
         var found = false
         var rng = IncrementalInput.of(0, 2*length +1) //twice the length should always be enough (+1 to avoid length = 0)
         while (! found && ! rng.isEmpty) {
@@ -95,8 +92,8 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
         }
         found
       }
-      case _ if (HANDLE_UNEXPECTED_INPUT) => true
-    }})
+      case _ => true
+    })
   }
 
   @Test
@@ -115,8 +112,8 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       num <- Gen.choose(MIN_NUM, MAX_NUM)
     } yield (offset, from, length, num)
 
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, Int, Int, Int) => in match {
-      case (offset, from, length, num) if validInput(in) => {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {
+      case (offset, from, length, num) if validInput((offset, from, length, num)) => {
         var gen = IncrementalInput.infinite(offset)
         val numRuns = num * (length +1)
         val buckets: Array[Int] = Array.ofDim[Int](length +1)
@@ -127,8 +124,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
         }
         buckets.fold(0)(Math.max) == buckets.fold(Int.MaxValue)(Math.min)
       }
-      case _ if (HANDLE_UNEXPECTED_INPUT) => true
-    }})
+    })
   }
 
   @Test
@@ -152,15 +148,15 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
       entries <- Gen.listOf(entryGen) suchThat (validEntries _)
     } yield (offset, entries)
 
-    check(Prop.forAll(inputGen suchThat (validInput(_))) {in: (Int, List[(Int,Int)]) => in match {
-      case (offset, entries) if validInput(in) => {
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {
+      case (offset, entries) if validInput((offset, entries)) => {
           var gen = IncrementalInput.infinite(offset)
           val flattenEq: List[Int] = entries.flatMap(e => Stream.continually(valueOf(e)).take(arityOf(e)).toList)
           val withOf = UniformDistribution.of(flattenEq.head, flattenEq.tail:_*)(gen)
           val withFrequency = UniformDistribution.frequency(entries:_*)(gen)
           withOf == withFrequency
       }
-      case _ if (HANDLE_UNEXPECTED_INPUT) => true
-    }})
+      case _ => true
+    })
   }
 }
