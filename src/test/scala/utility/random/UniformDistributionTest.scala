@@ -28,10 +28,9 @@ object IncrementalInput {
 }
 
 object FromLengthGen {
-  val MIN_LENGTH = 0
-  val MAX_LENGTH = 1000
-
+  val MIN_LENGTH = 0 ; val MAX_LENGTH = 1000
   def validLength(from: Int)(length: Int) = MIN_LENGTH <= length && length <= MAX_LENGTH && from <= length + from
+  def check(in: (Int, Int, Int)) = validLength(in._2)(in._3)
 
   val unsafeGen = for {
     offset <- arbitrary[Int]
@@ -41,11 +40,11 @@ object FromLengthGen {
 
   val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
 
-  def check(in: (Int, Int, Int)) = validLength(in._2)(in._3)
-}
+  }
 
 object FromLengthTargetGen {
   def validTarget(from: Int, to: Int)(target: Int) = from <= target && target <= to
+  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validTarget(in._2, in._2 + in._3)(in._4)
 
   val unsafeGen = for {
     (offset, from, length) <- FromLengthGen.unsafeGen
@@ -53,15 +52,12 @@ object FromLengthTargetGen {
   } yield (offset, from, length, target)
 
   val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
-
-  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validTarget(in._2, in._2 + in._3)(in._4)
 }
 
 object FromLengthTimesGen {
-  val MIN_NUM = 1
-  val MAX_NUM = 100
-
+  val MIN_NUM = 1 ; val MAX_NUM = 100
   def validNum(num: Int) = MIN_NUM <= num && num <= MAX_NUM
+  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validNum(in._4)
 
   val unsafeGen = for {
     (offset, from, length) <- FromLengthGen.unsafeGen
@@ -69,26 +65,23 @@ object FromLengthTimesGen {
   } yield (offset, from, length, num)
 
   val gen = for { in <- unsafeGen suchThat (check(_)) } yield in
-
-  def check(in: (Int, Int, Int, Int)) = FromLengthGen.check(in._1, in._2, in._3) && validNum(in._4)
 }
 
 class UniformDistributionTest extends JUnitSuite with Checkers {
   @Test
   def propertyAlwaysInTheRange() {
     check(Prop.forAll(FromLengthGen.gen) {
-      case (offset, from, length) if FromLengthGen.check((offset, from, length)) => {
+      case (offset, from, length) => {
         val (out, _) = UniformDistribution.inRange(from, from + length)(IncrementalInput.infinite(offset))
         out >= from && out <= from + length
       }// for a range of size > 2^31 the generation can iterate over 2^32 - size of the range (length has been limited)
-      case _ => true
     })
   }
 
   @Test
   def propertyCanGenerateWhateverInTheRange() {
     check(Prop.forAll(FromLengthTargetGen.gen) {
-      case (offset, from, length, target) if FromLengthTargetGen.check((offset, from, length, target)) => {
+      case (offset, from, length, target) => {
         var found = false
         var rng = new IncrementalInput(IncrementalInput.infinite(offset).stream.take(2*length +1)) //twice the length should always be enough (+1 to avoid length = 0)
         while (! found) {
@@ -98,7 +91,6 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
         }
         found
       }
-      case _ => true
     })
   }
 
@@ -109,7 +101,7 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
     // it will return exactly M times each of the N values
 
     check(Prop.forAll(FromLengthTimesGen.gen) {
-      case (offset, from, length, num) if FromLengthTimesGen.check((offset, from, length, num)) => {
+      case (offset, from, length, num) => {
         var gen = IncrementalInput.infinite(offset)
         val numRuns = num * (length +1)
         val buckets: Array[Int] = Array.ofDim[Int](length +1)
@@ -145,14 +137,13 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
     } yield (offset, entries)
 
     check(Prop.forAll(inputGen suchThat (validInput(_))) {
-      case (offset, entries) if validInput((offset, entries)) => {
+      case (offset, entries) => {
           var gen = IncrementalInput.infinite(offset)
           val flattenEq: List[Int] = entries.flatMap(e => Stream.continually(valueOf(e)).take(arityOf(e)).toList)
           val withOf = UniformDistribution.of(flattenEq.head, flattenEq.tail:_*)(gen)
           val withFrequency = UniformDistribution.frequency(entries:_*)(gen)
           withOf == withFrequency
       }
-      case _ => true
     })
   }
 }
