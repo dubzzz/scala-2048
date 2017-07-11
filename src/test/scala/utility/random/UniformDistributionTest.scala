@@ -116,6 +116,24 @@ class UniformDistributionTest extends JUnitSuite with Checkers {
   }
 
   @Test
+  def propertyOfEquivalentToTakeEntryAtIndexInRange() {
+    def validInput(in: (Int, List[Int])) = ! in._2.isEmpty
+    val inputGen = for {
+      offset <- arbitrary[Int]
+      values <- Gen.listOf(arbitrary[Int]) suchThat (! _.isEmpty)
+    } yield (offset, values)
+
+    check(Prop.forAll(inputGen suchThat (validInput(_))) {
+      case (offset, values) => {
+        var gen = IncrementalInput.infinite(offset)
+        val withInRange = UniformDistribution.inRange(0, values.size -1)(gen)
+        val withOf = UniformDistribution.of(values.head, values.tail:_*)(gen)
+        values.drop(withInRange._1).head == withOf._1 && withInRange._2 == withOf._2
+      }
+    })
+  }
+
+  @Test
   def propertyFrequencyEquivalentToFlattenOf() {
     def arityOf(e: (Int, Int)) = e._1
     def valueOf(e: (Int, Int)) = e._2
