@@ -32,11 +32,11 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
 
   def stringify(): String = {
     prevHistory.map(_._2).map(_ match {
-      case Left  => "L"
-      case Right => "R"
-      case Down  => "D"
-      case Up    => "U"
-    }).foldRight("")(_ + _)
+      case Left  => 'L'
+      case Right => 'R'
+      case Down  => 'D'
+      case Up    => 'U'
+    }).foldLeft("")((s, c) => c + s)
       .substring(1)
   }
 }
