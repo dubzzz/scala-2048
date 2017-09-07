@@ -98,30 +98,55 @@ object ScalaJS extends js.JSApp {
     })
   }
 
+  def updateHash(seed: Int, numNewGames: Int, history: String): Unit = {
+    dom.window.location.hash = s"#seed=$seed&id=$numNewGames&history=$history"
+  }
+
   def main(): Unit = {
     val svg: Selection[EventTarget] = d3.select("#playground").append("svg")
         .attr("width", s"${svgSize}px")
         .attr("height", s"${svgSize}px")
     val area = svg.append("g")
+
+    var seed = System.currentTimeMillis.toInt
+    var numNewGames = 0
+    var history = ""
     var game = GameManager.of(
-      MersenneTwister.of(System.currentTimeMillis.toInt),
+      MersenneTwister.of(seed),
       State2048.newGame(_, numTiles))
 
+    updateHash(seed, numNewGames, history)
     drawUnderlyingGrid(area)
 
     var tiles = emptyTiles(numTiles)
     tiles = updateTiles(area, tiles, game.state.grid)
 
     dom.document.getElementById("new-game").addEventListener("click", (e: EventTarget) => {
+      numNewGames += 1
+      history = ""
       game = game.newGame()
+      updateHash(seed, numNewGames, history)
       tiles = updateTiles(area, tiles, game.state.grid)
     })
     dom.document.getElementById("undo-move").addEventListener("click", (e: EventTarget) => {
+      if (! history.isEmpty) {
+        history = history.substring(0, history.length -1)
+      }
       game = game.undo().getOrElse(game)
+      updateHash(seed, numNewGames, history)
       tiles = updateTiles(area, tiles, game.state.grid)
     })
     dom.document.getElementById("redo-move").addEventListener("click", (e: EventTarget) => {
       game = game.redo().getOrElse(game)
+      if (game.next(Up).map(_.state.grid == game.state.grid).getOrElse(false))
+        history += "U"
+      else if (game.next(Down).map(_.state.grid == game.state.grid).getOrElse(false))
+        history += "D"
+      else if (game.next(Left).map(_.state.grid == game.state.grid).getOrElse(false))
+        history += "L"
+      else if (game.next(Right).map(_.state.grid == game.state.grid).getOrElse(false))
+        history += "R"
+      updateHash(seed, numNewGames, history)
       tiles = updateTiles(area, tiles, game.state.grid)
     })
 
@@ -133,32 +158,54 @@ object ScalaJS extends js.JSApp {
       val endTouch = (e.changedTouches(0).pageX, e.changedTouches(0).pageY)
       val delta = (endTouch._1 - startTouch._1, endTouch._2 - startTouch._2)
       if (2 * Math.abs(delta._1) < Math.abs(delta._2)) {
-        if (delta._2 > 0) game = game.next(Down).getOrElse(game)
-        else game = game.next(Up).getOrElse(game)
+        if (delta._2 > 0) {
+          history += "D"
+          game = game.next(Down).getOrElse(game)
+        }
+        else {
+          history += "U"
+          game = game.next(Up).getOrElse(game)
+        }
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       else if (2 * Math.abs(delta._2) < Math.abs(delta._1)) {
-        if (delta._1 > 0) game = game.next(Right).getOrElse(game)
-        else game = game.next(Left).getOrElse(game)
+        if (delta._1 > 0) {
+          history += "R"
+          game = game.next(Right).getOrElse(game)
+        }
+        else {
+          history += "L"
+          game = game.next(Left).getOrElse(game)
+        }
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
     }, false)
 
     dom.window.onkeydown = {(e: dom.KeyboardEvent) => e.keyCode match {
       case 37 /*left*/ => {
+        history += "L"
         game = game.next(Left).getOrElse(game)
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 38 /*up*/ => {
+        history += "U"
         game = game.next(Up).getOrElse(game)
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 39 /*right*/ => {
+        history += "R"
         game = game.next(Right).getOrElse(game)
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 40 /*down*/ => {
+        history += "D"
         game = game.next(Down).getOrElse(game)
+        updateHash(seed, numNewGames, history)
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case _ => ()}}
