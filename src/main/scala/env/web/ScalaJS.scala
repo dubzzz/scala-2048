@@ -114,6 +114,33 @@ object ScalaJS extends js.JSApp {
       MersenneTwister.of(seed),
       State2048.newGame(_, numTiles))
 
+    val initialHash = dom.window.location.hash
+    if (! initialHash.isEmpty) {
+      var history = "";
+      initialHash.substring(1)
+        .split('&')
+        .map(item => (item.takeWhile(_ != '='), item.dropWhile(_ != '=').substring(1)))
+        .foreach((entity) => {
+          val key = entity._1
+          val value = entity._2
+          if (key == "seed") {
+            seed = value.toInt
+          }
+          else if (key == "id") {
+            numNewGames = value.toInt
+          }
+          else if (key == "history") {
+            history = value;
+          }
+        })
+      game = GameManager.of(
+        MersenneTwister.of(seed),
+        State2048.newGame(_, numTiles))
+      game = Stream.from(0).take(numNewGames).foldLeft(game)((game, _) => game.newGame())
+        .parse(history)
+        .redoAll()
+    }
+
     updateHash(seed, numNewGames, game.stringify())
     drawUnderlyingGrid(area)
 
