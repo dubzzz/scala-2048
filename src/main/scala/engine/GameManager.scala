@@ -26,6 +26,10 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
     if (! nextMoves.isEmpty) state.next(nextMoves.head).map(nextS => new GameManager(builder, (nextS.asInstanceOf[State], nextMoves.head) :: prevHistory, nextMoves.tail))
     else None
   }
+  def redoAll(): GameManager[State] = redo() match {
+    case None    => this
+    case Some(g) => g.redoAll()
+  }
   def newGame(): GameManager[State] = {
     GameManager.of(initialState.rng.next()._2, builder)
   }
@@ -38,6 +42,17 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
       case Up    => 'U'
     }).foldLeft("")((s, c) => c + s)
       .substring(1)
+  }
+  def parse(in: String): GameManager[State] = {
+    new GameManager(builder,
+      (initialState, Left) :: Nil,
+      in.map(_ match {
+        case 'L' => Left
+        case 'R' => Right
+        case 'U' => Up
+        case  _  => Down
+      }).to[List]
+    )
   }
 }
 

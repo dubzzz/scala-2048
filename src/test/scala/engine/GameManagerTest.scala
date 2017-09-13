@@ -22,7 +22,7 @@ class GameManagerTest extends JUnitSuite with Checkers {
   } yield (directions)
   val genGameCommandsAndUndo = for {
     directions <- Gen.listOf(Gen.oneOf(Left, Right, Up, Down)) suchThat (! _.isEmpty)
-    numUndos   <- Gen.choose(0, directions.size)
+    numUndos <- Gen.choose(0, directions.size)
   } yield (directions, numUndos)
 
   @Test
@@ -71,6 +71,18 @@ class GameManagerTest extends JUnitSuite with Checkers {
           gMovesUndo.prevStates.size + numUndos == gMoves.prevStates.size &&
               ! (gMovesUndo.prevStates, gMoves.prevStates.drop(numUndos)).zipped.exists(_.v != _.v)
       }
+    })
+  }
+
+  @Test
+  def propertyParseOfStringifyIsIdentity(): Unit = {
+    check(Prop.forAll(genGameCommands) { directions =>
+      val gameInitial = GameManager.of(new FakeRandom(0), new FakeState(_))
+      val g1 = directions.foldLeft(gameInitial)((g, dir) => g.next(dir).getOrElse(g))
+      val g2 = gameInitial.parse(g1.stringify()).redoAll()
+
+      g1.state.v == g2.state.v &&
+        g1.prevHistory.map(_._2) == g2.prevHistory.map(_._2)
     })
   }
 }
