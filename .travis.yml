@@ -5,7 +5,12 @@ scala:
    - 2.12.2
 
 script:
-   - sbt ++$TRAVIS_SCALA_VERSION clean test
+   - sbt ++$TRAVIS_SCALA_VERSION clean
+   # build and run tests
+   - chmod +x build-and-run-tests.sh
+   - ./build-and-run-tests.sh $TRAVIS_SCALA_VERSION
+   # build optimized JavaScript version (env/web)
+   - sbt ++$TRAVIS_SCALA_VERSION fullOptJS
    # avoid unnecessary cache updates, source: http://www.scala-sbt.org/0.13/docs/Travis-CI-with-sbt.html
    - find $HOME/.sbt -name "*.lock" | xargs rm
    - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
@@ -21,4 +26,3 @@ install:
    - nvm use stable
    - npm install
    - npm install jsdom
-  

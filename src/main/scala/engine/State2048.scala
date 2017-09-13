@@ -8,7 +8,7 @@ class State2048(rng: RandomGenerator[Int], val grid: Array[Array[Int]]) extends 
 
   override def next(direction: Direction): Option[State2048] = {
     val current = Grid.toStreams(grid, direction)
-    val afterMove = current.map(LineRound.play_move(grid.length))
+    val afterMove = current.map(LineRound.ofInt.play_move(grid.length))
     if (current == afterMove) Option.empty[State2048]
     else {
       val (afterAppend, nrng) = State2048.appendRand(rng, afterMove)
@@ -27,9 +27,8 @@ object State2048 {
 
   def appendRand(rng: RandomGenerator[Int], s: Stream[Stream[Int]]): (Stream[Stream[Int]], RandomGenerator[Int]) = {
     val numNulls = s.flatten.count(_ == 0)
-    val (position, rng1) = UniformDistribution.nextInt(0, numNulls -1)(rng)
-    val (guessValue, rng2) = UniformDistribution.nextInt(0, 9)(rng1)
-    val v = if (guessValue == 0) 4 else 2
+    val (position, rng1) = UniformDistribution.inRange(0, numNulls -1)(rng)
+    val (v, rng2) = UniformDistribution.frequency((1, 4), (9, 2))(rng1)
 
     def replace_null(ss: Stream[Int], waitNulls: Int): Stream[Int] = {
       if (ss.isEmpty) Stream.empty[Int]
