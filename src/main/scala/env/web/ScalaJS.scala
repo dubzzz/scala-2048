@@ -99,7 +99,7 @@ object ScalaJS extends js.JSApp {
   }
 
   def updateHash(seed: Int, numNewGames: Int, history: String): Unit = {
-    dom.window.location.hash = s"#seed=$seed&id=$numNewGames&history=$history"
+    dom.window.location.hash = s"#seed=${seed}&id=${numNewGames}&history=${history}"
   }
 
   def main(): Unit = {
