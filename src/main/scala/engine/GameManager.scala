@@ -23,7 +23,7 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
     else None
   }
   def redo(): Option[GameManager[State]] = {
-    if (! nextMoves.isEmpty) next(nextMoves.head)
+    if (! nextMoves.isEmpty) state.next(nextMoves.head).map(nextS => new GameManager(builder, (nextS.asInstanceOf[State], nextMoves.head) :: prevHistory, nextMoves.tail))
     else None
   }
   def newGame(): GameManager[State] = {
