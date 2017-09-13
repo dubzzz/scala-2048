@@ -26,6 +26,10 @@ class GameManager[State <: GameState](val builder: RandomGenerator[Int] => State
     if (! nextMoves.isEmpty) state.next(nextMoves.head).map(nextS => new GameManager(builder, (nextS.asInstanceOf[State], nextMoves.head) :: prevHistory, nextMoves.tail))
     else None
   }
+  def undoAll(): GameManager[State] = undo() match {
+    case None    => this
+    case Some(g) => g.undoAll()
+  }
   def redoAll(): GameManager[State] = redo() match {
     case None    => this
     case Some(g) => g.redoAll()

@@ -163,6 +163,22 @@ object ScalaJS extends js.JSApp {
       updateHash(seed, numNewGames, game.stringify())
       tiles = updateTiles(area, tiles, game.state.grid)
     })
+    dom.document.getElementById("replay-all").addEventListener("click", (e: EventTarget) => {
+      game = game.undoAll()
+      updateHash(seed, numNewGames, game.stringify())
+      tiles = updateTiles(area, tiles, game.state.grid)
+      var replay = () => {}
+      replay = () => {
+        val ngame = game.redo()
+        if (! ngame.isEmpty) {
+          game = ngame.get
+          updateHash(seed, numNewGames, game.stringify())
+          tiles = updateTiles(area, tiles, game.state.grid)
+          dom.window.setTimeout(replay, 500)
+        }
+      }
+      dom.window.setTimeout(replay, 500)
+    })
 
     var startTouch: (Double, Double) = (0.0, 0.0)
     dom.document.getElementsByTagName("svg")(0).addEventListener("touchstart", (e: TouchEvent) => {
