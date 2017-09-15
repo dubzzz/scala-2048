@@ -174,10 +174,10 @@ object ScalaJS extends js.JSApp {
           game = ngame.get
           updateHash(seed, numNewGames, game.stringify())
           tiles = updateTiles(area, tiles, game.state.grid)
-          dom.window.setTimeout(replay, 500)
+          dom.window.setTimeout(replay, 100)
         }
       }
-      dom.window.setTimeout(replay, 500)
+      dom.window.setTimeout(replay, 100)
     })
 
     var startTouch: (Double, Double) = (0.0, 0.0)
