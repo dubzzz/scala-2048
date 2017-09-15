@@ -1,6 +1,7 @@
 package env.console
 
 import engine.{Down, GameManager, Grid, Left, Right, State2048, Up}
+import solver.DFSSolver
 import utility.random.MersenneTwister
 
 object Console {
@@ -16,7 +17,7 @@ object Console {
       })
 
       print('\n')
-      val choice = scala.io.StdIn.readLine("Your choice (left/right/up/down/undo/redo/new/quit): ")
+      val choice = scala.io.StdIn.readLine("Your choice (left/right/up/down/undo/redo/new/solve/quit): ")
       choice match {
         case "left"  => game = game.next(Left).getOrElse(game)
         case "right" => game = game.next(Right).getOrElse(game)
@@ -25,6 +26,13 @@ object Console {
         case "undo"  => game = game.undo().getOrElse(game)
         case "redo"  => game = game.redo().getOrElse(game)
         case "new"   => game = game.newGame()
+        case "solve" => {
+          try {
+            val target = scala.io.StdIn.readLine("Expected score: ").toInt
+            game = DFSSolver.solve(game, target).getOrElse(game)
+          }
+          catch { case e: Exception => printf("[ERROR] Unexpected exception: %s\n", e) }
+        }
         case "quit"  => quitGame = true
         case _       => printf("[ERROR] Unknown choice: %s\n", choice)
       }
