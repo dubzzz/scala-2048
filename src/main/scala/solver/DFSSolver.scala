@@ -36,6 +36,30 @@ object DFSSolver {
     def score(game: GameManager[State2048]): Int =
       Grid.toStreams(game.state.grid).flatten.count(_ == 0)
   }
+  class SnakeScore extends IScore {
+    def score(game: GameManager[State2048]): Int = {
+      val size = game.state.grid.length
+      val ws = Array.tabulate(size, size)((x: Int, y: Int) =>
+        if (y % 2 == 0) y*size + x+1
+        else y*size + size-x)
+      Grid.toStreams(game.state.grid).flatten
+        .zip(Grid.toStreams(ws).flatten)
+        .map(i => i._1 * i._2)
+        .sum
+    }
+  }
+  class BorderScore extends IScore {
+    def score(game: GameManager[State2048]): Int = {
+      val size = game.state.grid.length
+      val ws = Array.tabulate(size, size)((x: Int, y: Int) =>
+        if (y == 0 || y == size -1 || x == 0 || x == size -1) 1
+        else 0)
+      Grid.toStreams(game.state.grid).flatten
+        .zip(Grid.toStreams(ws).flatten)
+        .map(i => i._1 * i._2)
+        .sum
+    }
+  }
 
   def scoreOf(game: GameManager[State2048]): Int =
     Grid.toStreams(game.state.grid).flatten.max
