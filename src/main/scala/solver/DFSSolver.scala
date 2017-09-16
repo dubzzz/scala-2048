@@ -13,6 +13,12 @@ object DFSSolver {
     def choices(game: GameManager[State2048]): List[Direction] =
       Left :: Down :: Right :: Up :: List.empty
   }
+  class CircularOrderStrategy extends IStrategy {
+    def choices(game: GameManager[State2048]): List[Direction] = {
+      val xs: List[Direction] = Left :: Down :: Right :: Up :: Left :: Down :: Right :: Up :: List.empty
+      xs.drop(game.prevHistory.size % 4).take(4).toList
+    }
+  }
 
   def scoreOf(game: GameManager[State2048]): Int =
     Grid.toStreams(game.state.grid).flatten.max

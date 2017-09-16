@@ -2,7 +2,7 @@ package env.console
 
 import engine.{Down, GameManager, Grid, Left, Right, State2048, Up}
 import solver.DFSSolver
-import solver.DFSSolver.FixedOrderStrategy
+import solver.DFSSolver.{CircularOrderStrategy, FixedOrderStrategy}
 import utility.random.MersenneTwister
 
 object Console {
@@ -35,7 +35,13 @@ object Console {
         case "solve" => {
           try {
             val target = scala.io.StdIn.readLine("Expected score: ").toInt
-            game = DFSSolver.solve(game, target, new FixedOrderStrategy).getOrElse(game)
+            val strategyName = scala.io.StdIn.readLine("Your strategy (fixed/circular): ")
+            val strategy = strategyName match {
+              case "fixed"    => new FixedOrderStrategy
+              case "circular" => new CircularOrderStrategy
+              case _          => new FixedOrderStrategy
+            }
+            game = DFSSolver.solve(game, target, strategy).getOrElse(game)
           }
           catch { case e: Exception => printf("[ERROR] Unexpected exception: %s\n", e) }
         }
