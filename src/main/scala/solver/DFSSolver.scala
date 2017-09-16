@@ -8,6 +8,9 @@ object DFSSolver {
   trait IStrategy {
     def choices(game: GameManager[State2048]): List[Direction]
   }
+  trait IScore {
+    def score(game: GameManager[State2048]): Int
+  }
 
   class FixedOrderStrategy extends IStrategy {
     def choices(game: GameManager[State2048]): List[Direction] =
@@ -18,6 +21,20 @@ object DFSSolver {
       val xs: List[Direction] = Left :: Down :: Right :: Up :: Left :: Down :: Right :: Up :: List.empty
       xs.drop(game.prevHistory.size % 4).take(4).toList
     }
+  }
+  class NextStepStrategy(val scoring: IScore) extends IStrategy {
+    def choices(game: GameManager[State2048]): List[Direction] = {
+      val xs: List[Direction] = Left :: Down :: Right :: Up :: List.empty
+      xs.map(direction => (direction, game.next(direction)))
+        .filter(! _._2.isEmpty)
+        .map(data => (data._1, scoring.score(data._2.get)))
+        .sortWith((a, b) => a._2 > b._2)
+        .map(_._1)
+    }
+  }
+  class MaxHolesScore extends IScore {
+    def score(game: GameManager[State2048]): Int =
+      Grid.toStreams(game.state.grid).flatten.count(_ == 0)
   }
 
   def scoreOf(game: GameManager[State2048]): Int =
