@@ -48,6 +48,7 @@ object DFSSolver {
         .zip(Grid.toStreams(ws).flatten)
         .map(i => i._1 * i._2)
         .sum
+        .toInt
     }
   }
   class BorderScore extends IScore {
