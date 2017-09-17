@@ -43,6 +43,7 @@ object DFSSolver {
         if (y % 2 == 0) y*size + x+1
         else y*size + size-x)
       Grid.toStreams(game.state.grid).flatten
+        .map(Math.round(Math.log(_)/Math.log(2)))
         .zip(Grid.toStreams(ws).flatten)
         .map(i => i._1 * i._2)
         .sum
