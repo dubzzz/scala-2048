@@ -98,8 +98,8 @@ object ScalaJS extends js.JSApp {
     })
   }
 
-  def updateHash(seed: Int, numNewGames: Int, history: String): Unit = {
-    dom.window.location.hash = s"#seed=${seed}&id=${numNewGames}&history=${history}"
+  def updateHash(repr: String): Unit = {
+    dom.window.location.hash = s"#${repr}"
   }
 
   def main(): Unit = {
@@ -108,71 +108,41 @@ object ScalaJS extends js.JSApp {
         .attr("height", s"${svgSize}px")
     val area = svg.append("g")
 
-    var seed = System.currentTimeMillis.toInt
-    var numNewGames = 0
-    var game = GameManager.of(
-      MersenneTwister.of(seed),
-      State2048.newGame(_, numTiles))
-
     val initialHash = dom.window.location.hash
-    if (! initialHash.isEmpty) {
-      var history = "";
-      initialHash.substring(1)
-        .split('&')
-        .map(item => (item.takeWhile(_ != '='), item.dropWhile(_ != '=').substring(1)))
-        .foreach((entity) => {
-          val key = entity._1
-          val value = entity._2
-          if (key == "seed") {
-            seed = value.toInt
-          }
-          else if (key == "id") {
-            numNewGames = value.toInt
-          }
-          else if (key == "history") {
-            history = value;
-          }
-        })
-      game = GameManager.of(
-        MersenneTwister.of(seed),
-        State2048.newGame(_, numTiles))
-      game = Stream.from(0).take(numNewGames).foldLeft(game)((game, _) => game.newGame())
-        .parse(history)
-        .redoAll()
-    }
+    var game = if (initialHash.isEmpty) GameManager.of(MersenneTwister.of(_), State2048.newGame(_, numTiles), System.currentTimeMillis.toInt)
+               else GameManager.of(MersenneTwister.of(_), State2048.newGame(_, numTiles), initialHash.substring(1))
 
-    updateHash(seed, numNewGames, game.stringify())
+    updateHash(game.stringify())
     drawUnderlyingGrid(area)
 
     var tiles = emptyTiles(numTiles)
     tiles = updateTiles(area, tiles, game.state.grid)
 
     dom.document.getElementById("new-game").addEventListener("click", (e: EventTarget) => {
-      numNewGames += 1
       game = game.newGame()
-      updateHash(seed, numNewGames, game.stringify())
+      updateHash(game.stringify())
       tiles = updateTiles(area, tiles, game.state.grid)
     })
     dom.document.getElementById("undo-move").addEventListener("click", (e: EventTarget) => {
       game = game.undo().getOrElse(game)
-      updateHash(seed, numNewGames, game.stringify())
+      updateHash(game.stringify())
       tiles = updateTiles(area, tiles, game.state.grid)
     })
     dom.document.getElementById("redo-move").addEventListener("click", (e: EventTarget) => {
       game = game.redo().getOrElse(game)
-      updateHash(seed, numNewGames, game.stringify())
+      updateHash(game.stringify())
       tiles = updateTiles(area, tiles, game.state.grid)
     })
     dom.document.getElementById("replay-all").addEventListener("click", (e: EventTarget) => {
       game = game.undoAll()
-      updateHash(seed, numNewGames, game.stringify())
+      updateHash(game.stringify())
       tiles = updateTiles(area, tiles, game.state.grid)
       var replay = () => {}
       replay = () => {
         val ngame = game.redo()
         if (! ngame.isEmpty) {
           game = ngame.get
-          updateHash(seed, numNewGames, game.stringify())
+          updateHash(game.stringify())
           tiles = updateTiles(area, tiles, game.state.grid)
           dom.window.setTimeout(replay, 100)
         }
@@ -190,13 +160,13 @@ object ScalaJS extends js.JSApp {
       if (2 * Math.abs(delta._1) < Math.abs(delta._2)) {
         if (delta._2 > 0) game = game.next(Down).getOrElse(game)
         else game = game.next(Up).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       else if (2 * Math.abs(delta._2) < Math.abs(delta._1)) {
         if (delta._1 > 0) game = game.next(Right).getOrElse(game)
         else game = game.next(Left).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
     }, false)
@@ -204,22 +174,22 @@ object ScalaJS extends js.JSApp {
     dom.window.onkeydown = {(e: dom.KeyboardEvent) => e.keyCode match {
       case 37 /*left*/ => {
         game = game.next(Left).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 38 /*up*/ => {
         game = game.next(Up).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 39 /*right*/ => {
         game = game.next(Right).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case 40 /*down*/ => {
         game = game.next(Down).getOrElse(game)
-        updateHash(seed, numNewGames, game.stringify())
+        updateHash(game.stringify())
         tiles = updateTiles(area, tiles, game.state.grid)
       }
       case _ => ()}}

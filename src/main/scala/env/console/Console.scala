@@ -8,9 +8,7 @@ import utility.random.MersenneTwister
 object Console {
   def main(args: Array[String]): Unit = {
     var quitGame = false
-    var seed = System.currentTimeMillis.toInt
-    var numNewGames = 0
-    var game = GameManager.of(MersenneTwister.of(seed), State2048.newGame(_, 4))
+    var game = GameManager.of(MersenneTwister.of(_), State2048.newGame(_, 4), System.currentTimeMillis.toInt)
     while (! quitGame) {
       printf("Current state (%d points): \n\n", game.state.score)
       Grid.toStreams(game.state.grid).foreach(line_stream => {
@@ -28,10 +26,7 @@ object Console {
         case "down"  => game = game.next(Down).getOrElse(game)
         case "undo"  => game = game.undo().getOrElse(game)
         case "redo"  => game = game.redo().getOrElse(game)
-        case "new"   => {
-          numNewGames += 1
-          game = game.newGame()
-        }
+        case "new"   => game = game.newGame()
         case "solve" => {
           try {
             val target = scala.io.StdIn.readLine("Expected score: ").toInt
@@ -48,7 +43,7 @@ object Console {
           }
           catch { case e: Exception => printf("[ERROR] Unexpected exception: %s\n", e) }
         }
-        case "state" => printf(s"#seed=${seed}&id=${numNewGames}&history=${game.stringify()}\n")
+        case "state" => printf(s"#${game.stringify()}\n")
         case "quit"  => quitGame = true
         case _       => printf("[ERROR] Unknown choice: %s\n", choice)
       }

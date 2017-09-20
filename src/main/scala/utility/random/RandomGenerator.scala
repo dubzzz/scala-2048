@@ -1,5 +1,5 @@
 package utility.random
 
-trait RandomGenerator[A] {
+abstract class RandomGenerator[A] {
   def next(): (A, RandomGenerator[A]);
 }
