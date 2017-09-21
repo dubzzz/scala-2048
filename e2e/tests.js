@@ -54,8 +54,26 @@ test.describe('Google Search', function() {
         var teardown = async function() {
         };
 
+        var jscCommandsArray = function(gen) {
+            /**
+             * jsc.array uses logsize function as a limiter of its size...
+             * 
+             * // Helper, essentially: log2(size + 1)
+             * function logsize(size) {
+             *   return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
+             * }
+             */
+            var maxSize = 30;
+            return jsc.bless({
+                generator: () => jsc.array(gen).generator(Math.pow(2, maxSize)),
+                shrink: jsc.array(gen).shrink,
+                show: jsc.array(gen).show
+            });
+        };
+
         var testNumber = 0;
-        jsc.assert(jsc.forall(jsc.array(jscCommands), async function(actions) {
+        jsc.assert(jsc.forall(jscCommandsArray(jscCommands), async function(actions) {
+            //var actions = actions2d.reduce((a,b) => a.concat(b), []);
             console.log("#" + (++testNumber) + ": " + actions.join(', '));
             var model = await warmup();
             var result = await runall(actions, model);
