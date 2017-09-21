@@ -28,7 +28,7 @@ class GameManagerTest extends JUnitSuite with Checkers {
   @Test
   def propertyNewGameDifferentRndFromPreviousGame(): Unit = {
     check(Prop.forAll(genGameCommands) { directions =>
-      val gInit = GameManager.of(new FakeRandom(0), new FakeState(_))
+      val gInit = GameManager.of(new FakeRandom(_), new FakeState(_), 0)
       val gMoves = directions.foldLeft(gInit) ((g, dir) => g.next(dir).getOrElse(g))
       gInit.state.rng.next()._1 != gMoves.newGame().state.rng.next()._1
     })
@@ -37,8 +37,8 @@ class GameManagerTest extends JUnitSuite with Checkers {
   @Test
   def propertyWhateverTheStartingPointNewGameIsTheSame(): Unit = {
     check(Prop.forAll(genGameCommands) { directions =>
-      val g1 = GameManager.of(new FakeRandom(0), new FakeState(_))
-      val g2 = directions.foldLeft(GameManager.of(new FakeRandom(0), new FakeState(_))) ((g, dir) => g.next(dir).getOrElse(g))
+      val g1 = GameManager.of(new FakeRandom(_), new FakeState(_), 0)
+      val g2 = directions.foldLeft(GameManager.of(new FakeRandom(_), new FakeState(_), 0)) ((g, dir) => g.next(dir).getOrElse(g))
       g1.newGame().state.rng.next()._1 == g2.newGame().state.rng.next()._1
     })
   }
@@ -51,7 +51,7 @@ class GameManagerTest extends JUnitSuite with Checkers {
           val moves = directions.tail
           val afterMove = directions.head
 
-          val gInit = GameManager.of(new FakeRandom(0), new FakeState(_))
+          val gInit = GameManager.of(new FakeRandom(_), new FakeState(_), 0)
           val gMoves = moves.foldLeft(gInit)((g, dir) => g.next(dir).getOrElse(g))
           val gMovesUndo = Stream.continually(0).take(numUndos).foldLeft(gMoves)((g, _) => g.undo().getOrElse(g))
           gMovesUndo.next(afterMove).get.redo() == None
@@ -64,7 +64,7 @@ class GameManagerTest extends JUnitSuite with Checkers {
     check(Prop.forAll(genGameCommandsAndUndo) { data =>
       data match {
         case (directions, numUndos) =>
-          val gInit = GameManager.of(new FakeRandom(0), new FakeState(_))
+          val gInit = GameManager.of(new FakeRandom(_), new FakeState(_), 0)
           val gMoves = directions.foldLeft(gInit)((g, dir) => g.next(dir).getOrElse(g))
           val gMovesUndo = Stream.continually(0).take(numUndos).foldLeft(gMoves)((g, _) => g.undo().getOrElse(g))
 
@@ -77,9 +77,9 @@ class GameManagerTest extends JUnitSuite with Checkers {
   @Test
   def propertyParseOfStringifyIsIdentity(): Unit = {
     check(Prop.forAll(genGameCommands) { directions =>
-      val gameInitial = GameManager.of(new FakeRandom(0), new FakeState(_))
+      val gameInitial = GameManager.of(new FakeRandom(_), new FakeState(_), 0)
       val g1 = directions.foldLeft(gameInitial)((g, dir) => g.next(dir).getOrElse(g))
-      val g2 = gameInitial.parse(g1.stringify()).redoAll()
+      val g2 = GameManager.of(new FakeRandom(_), new FakeState(_), g1.stringify())
 
       g1.state.v == g2.state.v &&
         g1.prevHistory.map(_._2) == g2.prevHistory.map(_._2)
