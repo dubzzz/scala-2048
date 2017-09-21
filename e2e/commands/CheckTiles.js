@@ -15,7 +15,8 @@ function CheckTiles() {
         await waitD3(driver);
         return await readGrid(driver) == await readGridFromD3(driver);
     };
-    self.toString = function() { return "CheckTiles"; };
+    self.name = "CheckTiles";
+    self.toString = function() { return self.name; };
 }
 
 module.exports = CheckTiles;

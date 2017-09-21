@@ -31,7 +31,8 @@ function PlayMove(direction) {
         await driver.findElement(By.id("playground")).sendKeys(key());
         return true;
     };
-    self.toString = function() { return "PlayMove(" + prettyDirection() + ")"; };
+    self.name = "PlayMove(" + prettyDirection() + ")";
+    self.toString = function() { return self.name; };
 }
 
 module.exports = PlayMove;
