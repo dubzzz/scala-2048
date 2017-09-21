@@ -13,7 +13,7 @@ promise.USE_PROMISE_MANAGER = false;
 
 const browserName = process.env.BROWSER;
 
-test.describe('Google Search', function() {
+test.describe('Scala 2048', function() {
     let driver;
     let rootUrl = "https://dubzzz.github.io/scala-2048/";
 
