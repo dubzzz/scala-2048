@@ -36,8 +36,8 @@ test.describe('Scala 2048', function() {
             new PlayMove('D')
         ];
         var jscCommands = jsc.oneof.apply(this, commands.map(c => jsc.constant(c)));
-        var warmup = async function() {
-            await driver.get(rootUrl);
+        var warmup = async function(seed) {
+            await driver.get(rootUrl + "#seed=" + seed);
             return new Model();
         };
         var runall = async function(actions, model) {
@@ -52,6 +52,7 @@ test.describe('Scala 2048', function() {
             return true;
         };
         var teardown = async function() {
+            await driver.get("about:blank");
         };
 
         var jscCommandsArray = function(gen, maxSize) {
@@ -78,9 +79,9 @@ test.describe('Scala 2048', function() {
         };
 
         var testNumber = 0;
-        jsc.assert(jsc.forall(jscCommandsArray(jscCommands), async function(actions) {
+        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands), async function(seed, actions) {
             console.log("#" + (++testNumber) + ": " + actions.join(', '));
-            var model = await warmup();
+            var model = await warmup(seed);
             var result = await runall(actions, model);
             await teardown();
             return result;
