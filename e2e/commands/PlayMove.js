@@ -1,7 +1,6 @@
 'use strict';
 
 const {By, Key} = require('selenium-webdriver');
-const {waitD3} = require('../helpers');
 
 function PlayMove(direction) {
     var self = this;
@@ -30,7 +29,6 @@ function PlayMove(direction) {
     };
     self.run = async function(driver, model) {
         await driver.findElement(By.id("playground")).sendKeys(key());
-        await waitD3(driver);
         return true;
     };
     self.toString = function() { return "PlayMove(" + prettyDirection() + ")"; };

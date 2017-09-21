@@ -6,6 +6,7 @@ const test = require('selenium-webdriver/testing');
 const jsc = require('jsverify');
 
 const Model = require('./Model.js');
+const CheckTiles = require('./commands/CheckTiles.js');
 const PlayMove = require('./commands/PlayMove.js');
 
 promise.USE_PROMISE_MANAGER = false;
@@ -28,6 +29,7 @@ test.describe('Google Search', function() {
 
     test.it('random actions', done => {
         var commands = [
+            new CheckTiles(),
             new PlayMove('L'),
             new PlayMove('R'),
             new PlayMove('U'),
