@@ -12,6 +12,7 @@ class D3Board(val area: Selection[EventTarget]) {
   type TileArea = Selection[EventTarget]
   type TileEntity = (Int, Option[TileArea])
   var tiles: Array[Array[TileEntity]] = Array.tabulate[TileEntity](numTiles, numTiles)((y,x) => (0, Option.empty[TileArea]))
+  var gridLayout: Array[Array[Selection[EventTarget]]] = null
   var game: BoardController.Model = null
   var startTouch: (Double, Double) = (0.0, 0.0)
 
@@ -66,6 +67,7 @@ class D3Board(val area: Selection[EventTarget]) {
     tiles = Array.tabulate(next.size, next.size)((y,x) =>
       if (next(y)(x) == tiles(y)(x)._1) tiles(y)(x)
       else {
+        gridLayout(y)(x).attr("data-tile-value", s"${next(y)(x)}")
         tiles(y)(x)._2.map(destroyTile)
         (next(y)(x), appendIfTile(area, next, x, y))
       })
@@ -122,10 +124,12 @@ class D3Board(val area: Selection[EventTarget]) {
       case _ => ()}}
   }
   def init(): D3Board = {
-    Array.tabulate(numTiles,numTiles)((y,x) => {
+    gridLayout = Array.tabulate(numTiles,numTiles)((y,x) => {
       val px = tileMargin * x + tileSize * x + tileSize / 2
       val py = tileMargin * y + tileSize * y + tileSize / 2
       var g = area.append("g")
+        .attr("id", s"grid-tile-${y}-${x}")
+        .attr("data-tile-value", "0")
       var r = g.append("rect")
         .style("fill", "#fcf5dc")
         .attr("x", px - tileSize / 2)

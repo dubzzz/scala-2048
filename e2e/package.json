@@ -1,0 +1,22 @@
+{
+  "name": "e2e-scala-2048",
+  "version": "0.1.0",
+  "description": "E2E-tests for scala-2048",
+  "author": "Nicolas Dubien <github@dubien.org>",
+  "license": "MIT",
+  "dependencies": {
+    "selenium-webdriver": "^3.5.0",
+    "phantomjs": "^2.1.7",
+    "jsverify": "^0.8.3",
+    "jsverify-array-range": "^0.1.0"
+  },
+  "devDependencies": {
+    "mocha": "^3.1.2"
+  },
+  "scripts": {
+    "test": "env BROWSER=firefox mocha -t 600000 tests.js",
+    "test-ff": "env BROWSER=firefox mocha -t 600000 tests.js",
+    "test-phantom": "env BROWSER=phantomjs mocha -t 600000 tests.js",
+    "test-chrome": "env BROWSER=chrome mocha -t 600000 tests.js"
+  }
+}
