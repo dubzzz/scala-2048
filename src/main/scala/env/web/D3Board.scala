@@ -80,7 +80,15 @@ class D3Board(val area: Selection[EventTarget]) {
   }
 
   def executeGameAction(action: BoardController.Model => Option[BoardController.Model]) =
-    action(game).map(onUpdate(_))
+    action(game) match {
+      case Some(next) => onUpdate(next)
+      case _          => {
+        val h = s"#${game.stringify()}"
+        if (dom.window.location.hash != h) {
+          dom.window.location.hash = h;
+        }
+      }
+    }
 
   def registerClicks() = {
     dom.document.getElementById("new-game").addEventListener("click", (e: EventTarget) => executeGameAction(BoardController.newGame))
