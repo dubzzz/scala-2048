@@ -2,7 +2,7 @@
 
 const {clickInMenu, readGrid} = require('../helpers');
 
-function RedoMove(direction) {
+function RedoMove() {
     var self = this;
 
     self.check = async function(driver, model) {
