@@ -46,7 +46,15 @@ function Model() {
         ++self.gameId;
         self.current = "";
         self.history = "";
-        self.states.push({});
+        if (self.gameId >= self.states.length) {
+            self.states.push({});
+        }
+        return self;
+    };
+    self.jumpTo = function(gameId, history) {
+        self.gameId = gameId;
+        self.current = history.substr(0);
+        self.history = history.substr(0);
         return self;
     };
 
