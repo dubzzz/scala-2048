@@ -14,6 +14,8 @@
   },
   "scripts": {
     "test": "env BROWSER=firefox mocha -t 600000 tests.js",
+    "test-small": "env BROWSER=firefox ARRAY_SIZE=5 mocha -t 600000 tests.js",
+    
     "test-ff": "env BROWSER=firefox mocha -t 600000 tests.js",
     "test-phantom": "env BROWSER=phantomjs mocha -t 600000 tests.js",
     "test-chrome": "env BROWSER=chrome mocha -t 600000 tests.js"

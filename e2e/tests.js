@@ -14,6 +14,7 @@ const UndoMove = require('./commands/UndoMove.js');
 promise.USE_PROMISE_MANAGER = false;
 
 const browserName = process.env.BROWSER;
+const arraySize = +process.env.ARRAY_SIZE;
 
 test.describe('Scala 2048', function() {
     let driver;
@@ -84,7 +85,7 @@ test.describe('Scala 2048', function() {
         };
 
         var testNumber = 0;
-        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands, 5), async function(seed, actions) {
+        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands, arraySize), async function(seed, actions) {
             console.log("#" + (++testNumber) + ": " + actions.join(', '));
             var model = await warmup(seed);
             var result = await runall(actions, model);
