@@ -9,6 +9,7 @@ const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
 const PlayMove = require('./commands/PlayMove.js');
 const RedoMove = require('./commands/RedoMove.js');
+const StartNewGame = require('./commands/StartNewGame.js');
 const UndoMove = require('./commands/UndoMove.js');
 
 promise.USE_PROMISE_MANAGER = false;
@@ -38,7 +39,8 @@ test.describe('Scala 2048', function() {
             new PlayMove('U'),
             new PlayMove('D'),
             new RedoMove(),
-            new UndoMove()
+            new UndoMove(),
+            new StartNewGame()
         ];
         var jscCommands = jsc.oneof.apply(this, commands.map(c => jsc.constant(c)));
         var warmup = async function(seed) {
