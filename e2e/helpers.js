@@ -51,6 +51,14 @@ var helpers = {
             }).join(',');
         } + ")();");
     },
+    // open, click and then close the menu
+    clickInMenu: async function(driver, itemId) {
+        await driver.findElement(By.className("navbar-toggler")).click();
+        await driver.sleep(100);
+        await driver.findElement(By.id(itemId)).click();
+        await driver.findElement(By.className("navbar-toggler")).click();
+        await driver.sleep(100);
+    }
 };
 
 module.exports = helpers;

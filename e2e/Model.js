@@ -6,30 +6,52 @@ function Model() {
     self.history = "";
     self.states = {};
 
+    self.canUndo = function() {
+        return self.current.length > 0;
+    };
+    self.canRedo = function() {
+        return self.current.length < self.history.length;
+    };
+
     self.play = function(direction) {
-        if (self.current.length == self.history.length || self.history[self.current.length] == direction) {
+        if (self.current.length == self.history.length) {
             self.current += direction;
-            return self;
+            self.history += direction;
         }
-        self.current += direction;
-        self.history += direction;
+        else if (self.history[self.current.length] == direction) {
+            self.current += direction;
+        }
+        else {
+            self.current += direction;
+            self.history = self.current.substr(0);
+        }
         return self;
     };
     self.undo = function() {
+        if (! self.canUndo()) {
+            return self;
+        }
         self.current = self.current.substr(0, self.current.length -1);
         return self;
     };
     self.redo = function() {
+        if (! self.canRedo()) {
+            return self;
+        }
         self.current += self.history[self.current.length];
         return self;
     };
 
     self.store = function(url, game) {
+        var data = {url: url, game: game};
         if (self.states[self.current]) {
             var prev = self.states[self.current];
-            return prev.url == url && prev.game == game;
+            if (prev.url != url || prev.game != game) {
+                console.warn("Expecting state '" + self.current + "' to be " + JSON.stringify(prev) + " received " + JSON.stringify(data));
+                return false;
+            }
         }
-        self.states[self.current] = {url: url, game: game};
+        self.states[self.current] = data;
         return true;
     };
 };

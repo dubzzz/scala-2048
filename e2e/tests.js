@@ -8,6 +8,8 @@ const jsc = require('jsverify');
 const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
 const PlayMove = require('./commands/PlayMove.js');
+const RedoMove = require('./commands/RedoMove.js');
+const UndoMove = require('./commands/UndoMove.js');
 
 promise.USE_PROMISE_MANAGER = false;
 
@@ -33,7 +35,9 @@ test.describe('Scala 2048', function() {
             new PlayMove('L'),
             new PlayMove('R'),
             new PlayMove('U'),
-            new PlayMove('D')
+            new PlayMove('D'),
+            new RedoMove(),
+            new UndoMove()
         ];
         var jscCommands = jsc.oneof.apply(this, commands.map(c => jsc.constant(c)));
         var warmup = async function(seed) {
@@ -45,6 +49,7 @@ test.describe('Scala 2048', function() {
                 var ac = actions[idx];
                 if (await ac.check(driver, model)) {
                     if (! await ac.run(driver, model)) {
+                        console.error("Test failed @ step #" + idx + " on task " + ac);
                         return false;
                     }
                 }
@@ -79,7 +84,7 @@ test.describe('Scala 2048', function() {
         };
 
         var testNumber = 0;
-        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands), async function(seed, actions) {
+        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands, 5), async function(seed, actions) {
             console.log("#" + (++testNumber) + ": " + actions.join(', '));
             var model = await warmup(seed);
             var result = await runall(actions, model);
