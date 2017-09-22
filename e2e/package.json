@@ -7,8 +7,7 @@
   "dependencies": {
     "selenium-webdriver": "^3.5.0",
     "phantomjs": "^2.1.7",
-    "jsverify": "^0.8.3",
-    "jsverify-array-range": "^0.1.0"
+    "jsverify": "^0.8.3"
   },
   "devDependencies": {
     "mocha": "^3.1.2"
