@@ -45,35 +45,13 @@ test.describe('Scala 2048', function() {
         );
         var warmup = async function(seed) {
             await driver.get(rootUrl + "#seed=" + seed);
-            return new Model();
-        };
-        var runall = async function(actions, model) {
-            for (var idx = 0 ; idx != actions.length ; ++idx) {
-                var ac = actions[idx];
-                if (await ac.check(driver, model)) {
-                    if (! await ac.run(driver, model)) {
-                        console.error("Test failed @ step #" + idx + " on task " + ac);
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return {state: driver, model: new Model()};
         };
         var teardown = async function() {
             await driver.get("about:blank");
         };
 
-        
-
-        var testNumber = 0;
-        jsc.assert(jsc.forall(jsc.integer, commands, async function(seed, commands) {
-            var actions = commands.map(c => c.command);
-            console.log("#" + (++testNumber) + ": " + actions.join(', '));
-            var model = await warmup(seed);
-            var result = await runall(actions, model);
-            await teardown();
-            return result;
-        }))
+        jsc.assert(jscCommands.forallCommandsSeeded(jsc.integer, commands, warmup, teardown))
             .then(val => val ? done(val) : done())
             .catch(error => done(error));
     });
