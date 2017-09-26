@@ -34,14 +34,17 @@ test.describe('Scala 2048', function() {
     });
 
     test.it('random actions', done => {
-        var commands = jscCommands.numCommands(
-            arraySize,
-            jscCommands.command(CheckTiles),
-            jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
-            jscCommands.command(RedoMove),
-            jscCommands.command(UndoMove),
-            jscCommands.command(StartNewGame),
-            jscCommands.command(JumpBackToPast, jsc.nat)
+        var commands = jscCommands.filter(
+            jscCommands.numCommands(
+                arraySize,
+                jscCommands.command(CheckTiles),
+                jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
+                jscCommands.command(RedoMove),
+                jscCommands.command(UndoMove),
+                jscCommands.command(StartNewGame),
+                jscCommands.command(JumpBackToPast, jsc.nat)
+            ),
+            () => new Model()
         );
         var warmup = async function(seed) {
             await driver.get(rootUrl + "#seed=" + seed);

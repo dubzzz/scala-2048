@@ -34,7 +34,31 @@ var arbCommands = function(...commands) {
     return arbNumCommands.apply(this, [undefined].concat(commands));
 };
 
+var arbFilter = function(arb, modelBuilder) {
+    return jsc.bless({
+        generator: (size) => {
+            var arr = arb.generator(size);
+            var model = modelBuilder();
+            for (var i = 0; i != arr.length; ++i) {
+                if (arr[i].command.check(model)) {
+                    if (arr[i].command.smokeRun === undefined) {
+                        break;
+                    }
+                    arr[i].command.smokeRun(model);
+                }
+                else {
+                    arr[i] = undefined;
+                }
+            }
+            return arr.filter(c => c !== undefined);
+        },
+        shrink: arb.shrink,
+        show: arb.show
+    });
+};
+
 module.exports = {
     commands: arbCommands,
-    numCommands: arbNumCommands
+    numCommands: arbNumCommands,
+    filter: arbFilter
 };
