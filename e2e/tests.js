@@ -4,7 +4,7 @@ const assert = require('assert');
 const {Builder, By, Key, until, promise} = require('selenium-webdriver');
 const test = require('selenium-webdriver/testing');
 const jsc = require('jsverify');
-const jscCommands = require('./jscCommands.js');
+const jscCommands = require('./jscCommands/jscCommands.js');
 
 const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
