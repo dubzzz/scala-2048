@@ -4,7 +4,7 @@ const jsc = require('jsverify');
 var runall = async function(actions, state, model) {
     for (var idx = 0 ; idx != actions.length ; ++idx) {
         var ac = actions[idx];
-        if (await ac.check(state, model)) {
+        if (ac.check(model)) {
             if (! await ac.run(state, model)) {
                 console.error("Test failed @ step #" + idx + " on task " + ac);
                 return false;

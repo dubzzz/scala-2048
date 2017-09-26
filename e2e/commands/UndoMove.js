@@ -5,9 +5,8 @@ const {clickInMenu, readGrid} = require('../helpers');
 function UndoMove() {
     var self = this;
 
-    self.check = async function(driver, model) {
-        return true;
-    };
+    self.check = model => true;
+    
     self.run = async function(driver, model) {
         var initialUrl = await driver.getCurrentUrl();
         await clickInMenu(driver, "undo-move");

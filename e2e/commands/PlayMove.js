@@ -25,9 +25,8 @@ function PlayMove(direction) {
         return "unknown";
     };
 
-    self.check = async function(driver, model) {
-        return true;
-    };
+    self.check = model => true;
+    
     self.run = async function(driver, model) {
         var initialUrl = await driver.getCurrentUrl();
         await driver.findElement(By.id("playground")).sendKeys(key());

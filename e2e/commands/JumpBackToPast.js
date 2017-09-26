@@ -6,11 +6,12 @@ const {readGrid} = require('../helpers');
 function JumpBackToPast(pastId) {
     var self = this;
 
-    self.check = async function(driver, model) {
+    self.check = function(model) {
         return model.states
                 .map(items => Object.keys(items).length)
                 .reduce((a,b) => a+b, 0) > 0;
     };
+    
     self.run = async function(driver, model) {
         await driver.get("about:blank");
         var id = 0;
