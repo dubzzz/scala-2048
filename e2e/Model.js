@@ -7,6 +7,10 @@ function Model() {
     self.history = "";
     self.states = [{}];
 
+    self.describe = function() {
+        return self.gameId + "//" + self.current;
+    };
+
     self.canUndo = function() {
         return self.current.length > 0;
     };

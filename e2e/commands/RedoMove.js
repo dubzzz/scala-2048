@@ -7,6 +7,10 @@ function RedoMove() {
 
     self.check = model => true;
 
+    self.smokeRun = function(model) {
+        model.redo();
+    };
+
     self.run = async function(driver, model) {
         var initialUrl = await driver.getCurrentUrl();
         await clickInMenu(driver, "redo-move");

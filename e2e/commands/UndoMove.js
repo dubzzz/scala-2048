@@ -6,7 +6,11 @@ function UndoMove() {
     var self = this;
 
     self.check = model => true;
-    
+
+    self.smokeRun = function(model) {
+        model.undo();
+    };
+
     self.run = async function(driver, model) {
         var initialUrl = await driver.getCurrentUrl();
         await clickInMenu(driver, "undo-move");

@@ -26,6 +26,11 @@ function PlayMove(direction) {
     };
 
     self.check = model => true;
+
+    self.smokeRun = function(model) {
+        model.play(direction);
+        model.store(model.describe(), model.describe());
+    };
     
     self.run = async function(driver, model) {
         var initialUrl = await driver.getCurrentUrl();

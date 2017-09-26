@@ -11,9 +11,8 @@ function JumpBackToPast(pastId) {
                 .map(items => Object.keys(items).length)
                 .reduce((a,b) => a+b, 0) > 0;
     };
-    
-    self.run = async function(driver, model) {
-        await driver.get("about:blank");
+
+    var getPastItem = function(model) {
         var id = 0;
         var flatStates = model.states
                 .map(items => {
@@ -25,7 +24,17 @@ function JumpBackToPast(pastId) {
         if (scaledPastId < 0) {
             scaledPastId += flatStates.length;
         }
-        var item = flatStates[scaledPastId];
+        return flatStates[scaledPastId];
+    }
+
+    self.smokeRun = function(model) {
+        var item = getPastItem(model);
+        model.jumpTo(item.id, item.key);
+    };
+
+    self.run = async function(driver, model) {
+        await driver.get("about:blank");
+        var item = getPastItem(model);
         await driver.get(item.url);
         return model.jumpTo(item.id, item.key).store(await driver.getCurrentUrl(), await readGrid(driver));
     };

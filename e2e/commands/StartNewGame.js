@@ -7,6 +7,11 @@ function StartNewGame() {
 
     self.check = model => true;
 
+    self.smokeRun = function(model) {
+        model.newGame();
+        model.store(model.describe(), model.describe());
+    };
+
     self.run = async function(driver, model) {
         await clickInMenu(driver, "new-game");
         return model.newGame().store(await driver.getCurrentUrl(), await readGrid(driver));
