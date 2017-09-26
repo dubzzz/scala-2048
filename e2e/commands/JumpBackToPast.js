@@ -3,7 +3,7 @@
 const jsc = require('jsverify');
 const {readGrid} = require('../helpers');
 
-function JumpBackToPast() {
+function JumpBackToPast(pastId) {
     var self = this;
 
     self.check = async function(driver, model) {
@@ -20,11 +20,15 @@ function JumpBackToPast() {
                     return Object.keys(items).map(key => new Object({id: cid, url: items[key].url, key: key}))
                 })
                 .reduce((a,b) => a.concat(b), []);
-        var item = flatStates[jsc.random(0, flatStates.length -1)];//TODO: use a reproducible random number generator
+        var scaledPastId = pastId % flatStates.length;
+        if (scaledPastId < 0) {
+            scaledPastId += flatStates.length;
+        }
+        var item = flatStates[scaledPastId];
         await driver.get(item.url);
         return model.jumpTo(item.id, item.key).store(await driver.getCurrentUrl(), await readGrid(driver));
     };
-    self.name = "JumpBackToPast";
+    self.name = "JumpBackToPast(" + pastId + ")";
     self.toString = function() { return self.name; };
 }
 

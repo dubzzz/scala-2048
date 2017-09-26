@@ -4,6 +4,7 @@ const assert = require('assert');
 const {Builder, By, Key, until, promise} = require('selenium-webdriver');
 const test = require('selenium-webdriver/testing');
 const jsc = require('jsverify');
+const jscCommands = require('./jscCommands.js');
 
 const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
@@ -33,18 +34,15 @@ test.describe('Scala 2048', function() {
     });
 
     test.it('random actions', done => {
-        var commands = [
-            new CheckTiles(),
-            new PlayMove('L'),
-            new PlayMove('R'),
-            new PlayMove('U'),
-            new PlayMove('D'),
-            new RedoMove(),
-            new UndoMove(),
-            new StartNewGame(),
-            new JumpBackToPast()
-        ];
-        var jscCommands = jsc.oneof.apply(this, commands.map(c => jsc.constant(c)));
+        var commands = jscCommands.numCommands(
+            arraySize,
+            jscCommands.command(CheckTiles),
+            jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
+            jscCommands.command(RedoMove),
+            jscCommands.command(UndoMove),
+            jscCommands.command(StartNewGame),
+            jscCommands.command(JumpBackToPast, jsc.nat)
+        );
         var warmup = async function(seed) {
             await driver.get(rootUrl + "#seed=" + seed);
             return new Model();
@@ -65,31 +63,11 @@ test.describe('Scala 2048', function() {
             await driver.get("about:blank");
         };
 
-        var jscCommandsArray = function(gen, maxSize) {
-            /**
-             * jsc.array uses logsize function as a limiter of its size...
-             * 
-             * // Helper, essentially: log2(size + 1)
-             * function logsize(size) {
-             *   return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
-             * }
-             */
-            return jsc.bless({
-                generator: (size) => {
-                    var arrsize = jsc.random(0, maxSize || 100);
-                    var arr = new Array(arrsize);
-                    for (var i = 0; i < arrsize; i++) {
-                        arr[i] = gen.generator(size);
-                    }
-                    return arr;
-                },
-                shrink: jsc.array(gen).shrink,
-                show: jsc.array(gen).show
-            });
-        };
+        
 
         var testNumber = 0;
-        jsc.assert(jsc.forall(jsc.integer, jscCommandsArray(jscCommands, arraySize), async function(seed, actions) {
+        jsc.assert(jsc.forall(jsc.integer, commands, async function(seed, commands) {
+            var actions = commands.map(c => c.command);
             console.log("#" + (++testNumber) + ": " + actions.join(', '));
             var model = await warmup(seed);
             var result = await runall(actions, model);
