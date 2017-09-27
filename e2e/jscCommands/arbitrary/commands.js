@@ -10,6 +10,9 @@ var jscCommandsArray = function(gen, maxSize) {
      *   return Math.max(Math.round(Math.log(size + 1) / Math.log(2), 0));
      * }
      */
+    var expanded = function(arr) {
+        return arr.map(c => Array.isArray(c) ? expanded(c) : [c]).reduce((a, b) => a.concat(b), []);
+    };
     return jsc.bless({
         generator: (size) => {
             var arrsize = jsc.random(0, maxSize);
@@ -17,7 +20,7 @@ var jscCommandsArray = function(gen, maxSize) {
             for (var i = 0; i < arrsize; i++) {
                 arr[i] = gen.generator(size);
             }
-            return arr;
+            return expanded(arr);
         },
         shrink: jsc.array(gen).shrink,
         show: jsc.array(gen).show
