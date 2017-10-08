@@ -4,7 +4,7 @@ const assert = require('assert');
 const {Builder, By, Key, until, promise} = require('selenium-webdriver');
 const test = require('selenium-webdriver/testing');
 const jsc = require('jsverify');
-const jscCommands = require('./jscCommands/jscCommands.js');
+const jscCommands = require('jsverify-commands');
 
 const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
@@ -17,7 +17,7 @@ const UndoMove = require('./commands/UndoMove.js');
 promise.USE_PROMISE_MANAGER = false;
 
 const browserName = process.env.BROWSER;
-const arraySize = +process.env.ARRAY_SIZE;
+const arraySize = +process.env.ARRAY_SIZE || 100;
 
 test.describe('Scala 2048', function() {
     let driver;
@@ -34,18 +34,14 @@ test.describe('Scala 2048', function() {
     });
 
     test.it('random actions', done => {
-        var commands = jscCommands.filter(
-            jscCommands.numCommands(
-                arraySize,
-                jscCommands.command(CheckTiles),
-                jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
-                jscCommands.command(RedoMove),
-                jscCommands.command(UndoMove),
-                jscCommands.command(StartNewGame),
-                jscCommands.command(JumpBackToPast, jsc.nat)
-            ),
-            () => new Model()
-        );
+        var commands = jscCommands.commands(
+            arraySize,
+            jscCommands.command(CheckTiles),
+            jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
+            jscCommands.command(RedoMove),
+            jscCommands.command(UndoMove),
+            jscCommands.command(StartNewGame),
+            jscCommands.command(JumpBackToPast, jsc.nat));
         var warmup = async function(seed) {
             await driver.get(rootUrl + "#seed=" + seed);
             return {state: driver, model: new Model()};
@@ -54,7 +50,7 @@ test.describe('Scala 2048', function() {
             await driver.get("about:blank");
         };
 
-        jsc.assert(jscCommands.forallCommandsSeeded(jsc.integer, commands, warmup, teardown))
+        jsc.assert(jscCommands.forall(jsc.integer, commands, warmup, teardown))
             .then(val => val ? done(val) : done())
             .catch(error => done(error));
     });
