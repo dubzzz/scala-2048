@@ -6,7 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "jsverify": "^0.8.3",
-    "jsverify-commands": "^0.1.0",
+    "jsverify-commands": "^0.1.4",
     "phantomjs": "^2.1.7",
     "selenium-webdriver": "^3.5.0"
   },

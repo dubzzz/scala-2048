@@ -33,7 +33,7 @@ test.describe('Scala 2048', function() {
         await driver.quit();
     });
 
-    test.it('random actions', done => {
+    test.it('random actions', () => {
         var commands = jscCommands.commands(
             arraySize,
             jscCommands.command(CheckTiles),
@@ -50,8 +50,6 @@ test.describe('Scala 2048', function() {
             await driver.get("about:blank");
         };
 
-        jsc.assert(jscCommands.forall(jsc.integer, commands, warmup, teardown))
-            .then(val => val ? done(val) : done())
-            .catch(error => done(error));
+        return jsc.assert(jscCommands.forall(jsc.integer, commands, warmup, teardown));
     });
 });
