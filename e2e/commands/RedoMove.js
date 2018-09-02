@@ -7,11 +7,7 @@ function RedoMove() {
 
     self.check = model => true;
 
-    self.smokeRun = function(model) {
-        model.redo();
-    };
-
-    self.run = async function(driver, model) {
+    self.run = async function(model, driver) {
         var initialUrl = await driver.getCurrentUrl();
         await clickInMenu(driver, "redo-move");
         return model.redo().store(await driver.getCurrentUrl(), await readGrid(driver));

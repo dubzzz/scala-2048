@@ -10,9 +10,7 @@ function CheckTiles() {
 
     self.check = model => true;
 
-    self.smokeRun = model => {};
-
-    self.run = async function(driver, model) {
+    self.run = async function(model, driver) {
         await waitD3(driver);
         return await readGrid(driver) == await readGridFromD3(driver);
     };

@@ -15,6 +15,15 @@ function PlayMove(direction) {
         }
         return null;
     };
+    var keyCode = function() {
+        switch (direction) {
+            case "L": return 37;
+            case "R": return 39;
+            case "U": return 38;
+            case "D": return 40;
+        }
+        return null;
+    };
     var prettyDirection = function() {
         switch (direction) {
             case "L": return "left";
@@ -26,15 +35,17 @@ function PlayMove(direction) {
     };
 
     self.check = model => true;
-
-    self.smokeRun = function(model) {
-        model.play(direction);
-        model.store(model.describe(), model.describe());
-    };
     
-    self.run = async function(driver, model) {
+    self.run = async function(model, driver) {
         var initialUrl = await driver.getCurrentUrl();
-        await driver.findElement(By.id("playground")).sendKeys(key());
+        // Sending keys directly from Selenium to the 'playground'
+        // does not seem to work anymore
+        // The work-around has been to send the keys directly from the browser
+        // :: await driver.findElement(By.id("playground")).sendKeys(key());
+        await driver.executeScript(" \
+            const ke = new KeyboardEvent('keydown', {bubbles: true, cancelable: true, keyCode: " + keyCode() + "}); \
+            document.getElementById('playground').dispatchEvent(ke);                                 \
+        ");
         var updatedUrl = await driver.getCurrentUrl();
         if (initialUrl != updatedUrl) {// url has change iff the move was possible
             model.play(direction);

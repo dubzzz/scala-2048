@@ -1,10 +1,8 @@
 'use strict';
 
-const assert = require('assert');
-const {Builder, By, Key, until, promise} = require('selenium-webdriver');
+const {Builder, promise} = require('selenium-webdriver');
 const test = require('selenium-webdriver/testing');
-const jsc = require('jsverify');
-const jscCommands = require('jsverify-commands');
+const fc = require('fast-check');
 
 const Model = require('./Model.js');
 const CheckTiles = require('./commands/CheckTiles.js');
@@ -13,6 +11,8 @@ const PlayMove = require('./commands/PlayMove.js');
 const RedoMove = require('./commands/RedoMove.js');
 const StartNewGame = require('./commands/StartNewGame.js');
 const UndoMove = require('./commands/UndoMove.js');
+
+const {waitLoad} = require('./helpers');
 
 promise.USE_PROMISE_MANAGER = false;
 
@@ -33,23 +33,38 @@ test.describe('Scala 2048', function() {
         await driver.quit();
     });
 
-    test.it('random actions', () => {
-        var commands = jscCommands.commands(
-            arraySize,
-            jscCommands.command(CheckTiles),
-            jscCommands.command(PlayMove, jsc.oneof(jsc.constant('L'), jsc.constant('R'), jsc.constant('U'), jsc.constant('D'))),
-            jscCommands.command(RedoMove),
-            jscCommands.command(UndoMove),
-            jscCommands.command(StartNewGame),
-            jscCommands.command(JumpBackToPast, jsc.nat));
+    test.it('random actions', async () => {
+        var cmdArbs = [
+            fc.constant(new CheckTiles()),
+            fc.constantFrom('L', 'R', 'U', 'D').map(d => new PlayMove(d)),
+            fc.constant(new RedoMove()),
+            fc.constant(new UndoMove()),
+            fc.constant(new StartNewGame()),
+            fc.nat().map(d => new JumpBackToPast(d))
+        ];
         var warmup = async function(seed) {
             await driver.get(rootUrl + "#seed=" + seed);
+            await waitLoad(driver);
             return {state: driver, model: new Model()};
         };
         var teardown = async function() {
             await driver.get("about:blank");
         };
 
-        return jsc.assert(jscCommands.forall(jsc.integer, commands, warmup, teardown));
+        await fc.assert(
+            fc.asyncProperty(
+                fc.nat(),
+                fc.commands(cmdArbs, arraySize),
+                async (seed, cmds) => {
+                    const {state, model} = await warmup(seed);
+                    try {
+                        await fc.asyncModelRun(() => ({model, real: state}), cmds);
+                    }
+                    finally {
+                        await teardown();
+                    }
+                }
+            )
+        );
     });
 });

@@ -10,6 +10,12 @@ function __injectedEndAll(transition, callback) {
 }
 
 var helpers = {
+    // wait load
+    waitLoad: async function(driver) {
+        await driver.wait(function() {
+            return driver.executeScript("return document.readyState === \"complete\";");
+        }, 10000);
+    },
     // block execution until the end of the animation
     waitD3: async function(driver) {
         await driver.executeAsyncScript("             \

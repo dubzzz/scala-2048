@@ -1,6 +1,5 @@
 'use strict';
 
-const jsc = require('jsverify');
 const {readGrid} = require('../helpers');
 
 function JumpBackToPast(pastId) {
@@ -27,12 +26,7 @@ function JumpBackToPast(pastId) {
         return flatStates[scaledPastId];
     }
 
-    self.smokeRun = function(model) {
-        var item = getPastItem(model);
-        model.jumpTo(item.id, item.key);
-    };
-
-    self.run = async function(driver, model) {
+    self.run = async function(model, driver) {
         await driver.get("about:blank");
         var item = getPastItem(model);
         await driver.get(item.url);
